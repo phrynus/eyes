@@ -51,7 +51,7 @@ router.post("/", async (ctx) => {
       { userName: user.name, userId: user._id },
       config.tokenRefreshSecret,
       {
-        expiresIn: "7d",
+        expiresIn: "24h",
       },
     );
 

@@ -31,12 +31,7 @@ router.post("/", async (ctx) => {
       { expiresIn: "1h" },
     );
   } catch (err) {
-    logger.error(
-      `[错误][刷新令牌] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
-    logger.error(err);
-
-    ctx.status = 404;
+    ctx.status = 403;
     ctx.body = err.message;
   }
 });

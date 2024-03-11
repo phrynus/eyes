@@ -82,7 +82,7 @@ router.post("/addKey", async (ctx) => {
       return;
     }
     // 判断KEY是否已经添加
-    if (ploy.keyId.includes(keyMarkId)) {
+    if (ploy.keyId.includes(key._id.toString())) {
       ctx.status = 400;
       ctx.body = "KEY已经添加";
       return;
@@ -94,7 +94,7 @@ router.post("/addKey", async (ctx) => {
       return;
     }
     // id转成字符串
-    ploy.keyId.push(keyMarkId);
+    ploy.keyId.push(key._id.toString());
     await db.Ploy.updateOne(
       { _id: ploy._id },
       {
@@ -103,7 +103,7 @@ router.post("/addKey", async (ctx) => {
         },
       },
     );
-    key.ployId.push(ployMarkId);
+    key.ployId.push(ploy._id.toString());
     await db.Key.updateOne(
       { _id: key._id },
       {
@@ -138,7 +138,7 @@ router.post("/deleteKey", async (ctx) => {
       return;
     }
     // 删除KEY
-    ploy.keyId = ploy.keyId.filter((item) => item !== keyMarkId);
+    ploy.keyId = ploy.keyId.filter((item) => item !== key._id.toString());
     await db.Ploy.updateOne(
       {
         _id: ploy._id,
@@ -150,7 +150,7 @@ router.post("/deleteKey", async (ctx) => {
       },
     );
     // 删除策略
-    key.ployId = key.ployId.filter((item) => item !== ployMarkId);
+    key.ployId = key.ployId.filter((item) => item !== ploy._id.toString());
     await db.Key.updateOne(
       {
         _id: key._id,
@@ -170,5 +170,38 @@ router.post("/deleteKey", async (ctx) => {
     ctx.status = 404;
     ctx.body = err.message;
   }
+});
+router.post("/keyGet", async (ctx) => {
+  try {
+    const { ployMarkId } = ctx.request.body;
+    if (!ployMarkId) {
+      ctx.status = 400;
+      ctx.body = "参数错误";
+      return;
+    }
+    const ploy = await db.Ploy.findOne({ markId: ployMarkId });
+    if (!ploy) {
+      ctx.status = 400;
+      ctx.body = "策略不存在";
+      return;
+    }
+    const key = await db.Key.find(
+      { _id: ploy.keyId },
+      { name: 1, markId: 1, _id: 0 },
+    ).exec();
+    // 根据key.nameID取用户name
+    const keyName = [];
+    for (let i = 0; i < key.length; i++) {
+      const user = await db.User.findOne({
+        keyId: key[i]._id,
+      });
+      keyName.push({
+        name: key[i].name,
+        markId: key[i].markId,
+        userName: user.name,
+      });
+    }
+    ctx.body = keyName;
+  } catch (err) {}
 });
 module.exports = router;
