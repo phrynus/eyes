@@ -112,8 +112,6 @@ router.post("/addKey", async (ctx) => {
         },
       },
     );
-    console.log(key, ploy);
-
     ctx.body = "添加成功";
   } catch (err) {
     logger.error(
