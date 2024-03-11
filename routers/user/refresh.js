@@ -17,7 +17,7 @@ router.post("/", async (ctx) => {
     // 验证刷新令牌
     const decoded = jwt.verify(refreshToken, config.tokenRefreshSecret);
     await db.User.updateOne(
-      { _id: decoded._id },
+      { _id: decoded.userId },
       {
         $set: {
           login_ip: ctx.getIp,
@@ -26,12 +26,16 @@ router.post("/", async (ctx) => {
       },
     );
     ctx.body = jwt.sign(
-      { userName: decoded.userName },
+      { userName: decoded.userName, userId: decoded.userId },
       config.tokenAccessSecret,
       { expiresIn: "1h" },
     );
   } catch (err) {
-    logger.error(`[错误][刷新令牌] ${err.message} ${JSON.stringify(err)}`);
+    logger.error(
+      `[错误][刷新令牌] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
+    );
+    logger.error(err);
+
     ctx.status = 404;
     ctx.body = err.message;
   }

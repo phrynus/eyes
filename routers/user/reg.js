@@ -47,7 +47,11 @@ router.post("/", async (ctx) => {
     logger.info(`[注册] ${JSON.stringify(newUser)}`);
     ctx.body = await qrcode.toDataURL(totpSecret.otpauth_url);
   } catch (err) {
-    logger.error(`[错误][注册] ${err.message} ${JSON.stringify(err)}`);
+    logger.error(
+      `[错误][注册] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
+    );
+    logger.error(err);
+
     ctx.status = 404;
     ctx.body = err.message;
   }

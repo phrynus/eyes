@@ -57,8 +57,17 @@ router.post("/", async (ctx) => {
 
     const key = await db.Key.find(
       { userId: user._id },
-      { userId: 0, key: 0, secret: 0, _id: 0, __v: 0 },
+      { name: 1, ployId: 1, markId: 1, seeId: 1, exchange: 1, _id: 0 },
     ).exec();
+    key.forEach((item) => {
+      item.ployId.map(
+        (v) => {
+          delete v._id;
+        },
+        { userId: 0, _id: 0, __v: 0 },
+      );
+    });
+
     ctx.body = {
       name: user.name,
       token: {
@@ -68,7 +77,10 @@ router.post("/", async (ctx) => {
       key,
     };
   } catch (err) {
-    logger.error(`[错误][登录] ${err.message} ${JSON.stringify(err)}`);
+    logger.error(
+      `[错误][登录] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
+    );
+    logger.error(err);
     ctx.status = 404;
     ctx.body = err.message;
   }

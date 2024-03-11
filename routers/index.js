@@ -27,6 +27,7 @@ router.use("/api", routerApi.routes(), routerApi.allowedMethods());
 app.use(async (ctx, next) => {
   await next();
   if (ctx.status === 404) {
+    ctx.status = 404;
     ctx.body = "Copyright © 2024 Phrynus GitHub All Rights Reserved."; // "Not Found
   }
 });
