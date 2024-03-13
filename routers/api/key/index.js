@@ -1,33 +1,25 @@
 const koaRouter = require("koa-router");
 const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
+const validators = require("../../../controllers/validators");
+
 const randomId = require("../../../controllers/randomId");
 
-const routerUpdate = new koaRouter();
+const routerUpdate = require("./update");
 
 const router = new koaRouter();
 
 router.post("/add", async (ctx) => {
   try {
-    const {
-      exchange,
-      key,
-      secret,
-      password = "",
-      name,
-      safe_tradeList = {},
-      safe_mustSymbol = {},
-      safe_num = 10,
-      safe_full = true,
-      safe_both = true,
-      safe_trade = true,
-    } = ctx.request.body;
+    const { exchange, key, secret, password = "", name } = ctx.request.body;
+
     // 判断参数
     if (!exchange || !key || !secret || !name) {
       ctx.status = 400;
       ctx.body = "参数错误";
       return;
     }
+
     // 判断是否存在
     const keyExist = await db.Key.findOne({ exchange, key });
     if (keyExist) {
@@ -42,49 +34,34 @@ router.post("/add", async (ctx) => {
       ctx.body = "KEY数量已达上限";
       return;
     }
+    // 检查safe_tradeList格式
+
     // 添加
     const newKey = new db.Key({
       // 用户ID
       userId: ctx.user.userId,
       // 标记ID
-      markId: randomId(
-        "mark",
-        ctx.user.userId,
-        exchange,
-        key,
-        secret,
-        password,
-        name,
-        Date.now(),
-      ),
+      markId: randomId("mark", Date.now()),
       // 观摩ID
-      seeId: randomId(
-        "see",
-        ctx.user.userId,
-        exchange,
-        key,
-        secret,
-        password,
-        name,
-        Date.now(),
-      ),
-      // 策略ID
-      ployId: [],
+      seeId: randomId("see", Date.now()),
       exchange,
       key,
       secret,
       password,
       name,
-      safe_tradeList,
-      safe_mustSymbol,
-      safe_num,
-      safe_full,
-      safe_both,
-      safe_trade,
+      safe_tradeList: {
+        BTCUSDT: {
+          split: false,
+          full: false,
+          must: false,
+          Lever: 20,
+        },
+      },
     });
     await newKey.save();
 
     ctx.body = {
+      _id: newKey._id,
       name: newKey.name,
       exchange: newKey.exchange,
       markId: newKey.markId,

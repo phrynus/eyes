@@ -49,7 +49,17 @@ router.post("/add", async (ctx) => {
         },
       },
     );
-    ctx.body = "ok";
+
+    for (let j = 0; j < ploy.keyId.length; j++) {
+      let key = await db.Key.findOne({ _id: ploy.keyId[j] });
+      let user = await db.User.findOne({ _id: key.userId });
+      ploy.keyId[j] = {
+        key: key._id,
+        keyName: key.name,
+        keyUser: user.name,
+      };
+    }
+    ctx.body = ploy.keyId;
   } catch (err) {
     logger.error(
       `[错误][策略添加KEY] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
@@ -103,7 +113,16 @@ router.post("/delete", async (ctx) => {
         },
       },
     );
-    ctx.body = "ok";
+    for (let j = 0; j < ploy.keyId.length; j++) {
+      let key = await db.Key.findOne({ _id: ploy.keyId[j] });
+      let user = await db.User.findOne({ _id: key.userId });
+      ploy.keyId[j] = {
+        key: key._id,
+        keyName: key.name,
+        keyUser: user.name,
+      };
+    }
+    ctx.body = ploy.keyId;
   } catch (err) {
     logger.error(
       `[错误][策略删除KEY] ${err.message} > ${JSON.stringify(ctx.request.body)}`,

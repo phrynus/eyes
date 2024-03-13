@@ -20,6 +20,9 @@ dependencies:
   koa-bodyparser:
     specifier: ^4.4.1
     version: 4.4.1
+  koa-helmet:
+    specifier: ^7.0.2
+    version: 7.0.2
   koa-router:
     specifier: ^12.0.1
     version: 12.0.1
@@ -409,6 +412,11 @@ packages:
       function-bind: 1.1.2
     dev: false
 
+  /helmet@6.2.0:
+    resolution: {integrity: sha512-DWlwuXLLqbrIOltR6tFQXShj/+7Cyp0gLi6uAb8qMdFh/YBBFbKSgQ6nbXmScYd8emMctuthmgIa7tUfo9Rtyg==}
+    engines: {node: '>=14.0.0'}
+    dev: false
+
   /http-assert@1.5.0:
     resolution: {integrity: sha512-uPpH7OKX4H25hBmU6G1jWNaqJGpTXxey+YOUizJUAgu0AjLUeC8D73hTrhvDS5D+GJN1DN1+hhc/eF/wpxtp0w==}
     engines: {node: '>= 0.8'}
@@ -535,6 +543,13 @@ packages:
     dependencies:
       co: 4.6.0
       koa-compose: 4.1.0
+    dev: false
+
+  /koa-helmet@7.0.2:
+    resolution: {integrity: sha512-AvzS6VuEfFgbAm0mTUnkk/BpMarMcs5A56g+f0sfrJ6m63wII48d2GDrnUQGp0Nj+RR950vNtgqXm9UJSe7GOg==}
+    engines: {node: '>= 14.0.0'}
+    dependencies:
+      helmet: 6.2.0
     dev: false
 
   /koa-router@12.0.1:

@@ -11,6 +11,6 @@ const router = new koaRouter();
 
 router.use("/ploy", routerPloy.routes(), routerPloy.allowedMethods());
 router.use("/tv", routerTV.routes(), routerTV.allowedMethods());
-router.use("/order", routerOrder.routes(), routerOrder.allowedMethods());
+router.use("/binOrder", routerOrder.routes(), routerOrder.allowedMethods());
 
 module.exports = router;

@@ -29,7 +29,15 @@ router.post("/", async (ctx) => {
     );
     const key = await db.Key.find(
       { userId: user._id },
-      { name: 1, ployId: 1, markId: 1, seeId: 1, exchange: 1 },
+      {
+        name: 1,
+        ployId: 1,
+        markId: 1,
+        seeId: 1,
+        exchange: 1,
+        ployLever: 1,
+        safe_tradeList: 1,
+      },
     ).exec();
 
     // 根据key.ployId查询ploy.name

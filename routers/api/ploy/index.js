@@ -7,11 +7,17 @@ const router = new koaRouter();
 
 router.post("/add", async (ctx) => {
   try {
-    const { name, safe_lever = 1 } = ctx.request.body;
+    const { name } = ctx.request.body;
     // 判断参数
     if (!name) {
       ctx.status = 400;
       ctx.body = "参数错误";
+      return;
+    }
+    const usernameRegex = /^[\u4e00-\u9fa5\w\d]{3,16}$/;
+    if (!name || !usernameRegex.test(name)) {
+      ctx.status = 400;
+      ctx.body = "名称必须由3到16个字符组成，只能包含字母、数字、下划线、中文";
       return;
     }
     // 判断名下有多少个策略
@@ -31,13 +37,11 @@ router.post("/add", async (ctx) => {
       keyId: [],
       // 名称
       name,
-      // 安全模式 - 倍数
-      safe_lever,
     });
     await newPloy.save();
     ctx.body = {
       name: newPloy.name,
-      id: newPloy._id,
+      _id: newPloy._id,
     };
   } catch (err) {
     logger.error(

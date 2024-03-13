@@ -1,6 +1,7 @@
 const koa = require("koa");
 const koaRouter = require("koa-router");
 const koaBody = require("koa-bodyparser");
+const koaHelmet = require("koa-helmet");
 
 const routerTrade = require("./trade");
 const routerUser = require("./user");
@@ -12,6 +13,7 @@ const app = new koa();
 const router = new koaRouter();
 
 app.use(koaBody());
+app.use(koaHelmet());
 
 app.use(async (ctx, next) => {
   ctx.getIp = (ctx.get("X-Forwarded-For") || ctx.get("x-real-ip") || ctx.ip)
