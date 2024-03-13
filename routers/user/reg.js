@@ -52,7 +52,7 @@ router.post("/", async (ctx) => {
     );
     logger.error(err);
 
-    ctx.status = 404;
+    ctx.status = 500;
     ctx.body = err.message;
   }
 });

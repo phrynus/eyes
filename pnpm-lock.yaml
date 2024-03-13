@@ -26,6 +26,9 @@ dependencies:
   log4js:
     specifier: ^6.9.1
     version: 6.9.1
+  lz-string:
+    specifier: ^1.5.0
+    version: 1.5.0
   mongoose:
     specifier: ^8.2.1
     version: 8.2.1
@@ -631,6 +634,11 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
+    dev: false
+
+  /lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
     dev: false
 
   /media-typer@0.3.0:

@@ -2,20 +2,14 @@ const koaRouter = require("koa-router");
 const db = require("../../lib/db");
 const config = require("../../config");
 const jwt = require("jsonwebtoken");
-const logger = require("../../lib/logger");
+const tokenVerify = require("../../controllers/tokenVerify");
 
 const router = new koaRouter();
 
-router.post("/", async (ctx) => {
+router.post("/", tokenVerify, async (ctx) => {
   try {
-    const { refreshToken } = ctx.request.body;
-    if (!refreshToken) {
-      ctx.status = 400;
-      ctx.body = "参数错误";
-      return;
-    }
     // 验证刷新令牌
-    const decoded = jwt.verify(refreshToken, config.tokenRefreshSecret);
+    const decoded = jwt.verify(ctx.user, config.tokenAccessSecret);
     await db.User.updateOne(
       { _id: decoded.userId },
       {

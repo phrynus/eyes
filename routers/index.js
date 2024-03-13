@@ -11,6 +11,7 @@ const app = new koa();
 const router = new koaRouter();
 
 app.use(koaBody());
+
 app.use(async (ctx, next) => {
   ctx.getIp = (ctx.get("X-Forwarded-For") || ctx.get("x-real-ip") || ctx.ip)
     .replace(/:\d+$/, "")

@@ -2,6 +2,7 @@ const koaRouter = require("koa-router");
 const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
 const randomId = require("../../../controllers/randomId");
+const routerKey = require("./key");
 const router = new koaRouter();
 
 router.post("/add", async (ctx) => {
@@ -36,172 +37,64 @@ router.post("/add", async (ctx) => {
     await newPloy.save();
     ctx.body = {
       name: newPloy.name,
-      markId: newPloy.markId,
+      id: newPloy._id,
     };
   } catch (err) {
     logger.error(
       `[错误][策略添加] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
-    ctx.status = 404;
+    ctx.status = 500;
     ctx.body = err.message;
   }
 });
 router.post("/delete", async (ctx) => {
   try {
-    const { markId } = ctx.request.body;
-    if (!markId) {
+    const { ployId } = ctx.request.body;
+    if (!ployId) {
       ctx.status = 400;
       ctx.body = "参数错误";
       return;
     }
-    await db.Ploy.deleteOne({ markId });
-    ctx.body = "删除成功";
+    const ploy = await db.Ploy.findOne({ _id: ployId });
+    if (!ploy) {
+      ctx.status = 400;
+      ctx.body = "KEY不存在";
+      return;
+    }
+    if (ploy.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "策略不属于该账户";
+      return;
+    }
+    // 删除策略里面的key
+    for (let i = 0; i < ploy.keyId.length; i++) {
+      const key = await db.Key.findOne({ _id: ploy.keyId[i] });
+      if (!key) {
+        continue;
+      }
+      key.ployId = key.ployId.filter((item) => item !== ployId);
+      await db.Key.updateOne(
+        { _id: key._id },
+        {
+          $set: {
+            ployId: key.ployId,
+          },
+        },
+      );
+    }
+
+    await db.Ploy.deleteOne({ _id: ployId });
+    ctx.body = "ok";
   } catch (err) {
     logger.error(
       `[错误][策略删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
-    ctx.status = 404;
+    ctx.status = 500;
     ctx.body = err.message;
   }
 });
-router.post("/addKey", async (ctx) => {
-  try {
-    const { keyMarkId, ployMarkId } = ctx.request.body;
-    if (!keyMarkId || !ployMarkId) {
-      ctx.status = 400;
-      ctx.body = "参数错误";
-      return;
-    }
-    const key = await db.Key.findOne({ markId: keyMarkId });
-    const ploy = await db.Ploy.findOne({ markId: ployMarkId });
-    if (!key || !ploy) {
-      ctx.status = 400;
-      ctx.body = "KEY或策略不存在";
-      return;
-    }
-    // 判断KEY是否已经添加
-    if (ploy.keyId.includes(key._id.toString())) {
-      ctx.status = 400;
-      ctx.body = "KEY已经添加";
-      return;
-    }
-    // 判断KEY数量
-    if (ploy.keyId.length >= 5) {
-      ctx.status = 400;
-      ctx.body = "KEY数量已达上限";
-      return;
-    }
-    // id转成字符串
-    ploy.keyId.push(key._id.toString());
-    await db.Ploy.updateOne(
-      { _id: ploy._id },
-      {
-        $set: {
-          keyId: ploy.keyId,
-        },
-      },
-    );
-    key.ployId.push(ploy._id.toString());
-    await db.Key.updateOne(
-      { _id: key._id },
-      {
-        $set: {
-          ployId: key.ployId,
-        },
-      },
-    );
-    ctx.body = "添加成功";
-  } catch (err) {
-    logger.error(
-      `[错误][策略添加KEY] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
-    logger.error(err);
-    ctx.status = 404;
-    ctx.body = err.message;
-  }
-});
-router.post("/deleteKey", async (ctx) => {
-  try {
-    const { keyMarkId, ployMarkId } = ctx.request.body;
-    if (!keyMarkId || !ployMarkId) {
-      ctx.status = 400;
-      ctx.body = "参数错误";
-      return;
-    }
-    const key = await db.Key.findOne({ markId: keyMarkId });
-    const ploy = await db.Ploy.findOne({ markId: ployMarkId });
-    if (!key || !ploy) {
-      ctx.status = 400;
-      ctx.body = "KEY或策略不存在";
-      return;
-    }
-    // 删除KEY
-    ploy.keyId = ploy.keyId.filter((item) => item !== key._id.toString());
-    await db.Ploy.updateOne(
-      {
-        _id: ploy._id,
-      },
-      {
-        $set: {
-          keyId: ploy.keyId,
-        },
-      },
-    );
-    // 删除策略
-    key.ployId = key.ployId.filter((item) => item !== ploy._id.toString());
-    await db.Key.updateOne(
-      {
-        _id: key._id,
-      },
-      {
-        $set: {
-          ployId: key.ployId,
-        },
-      },
-    );
-    ctx.body = "ok";
-  } catch (err) {
-    logger.error(
-      `[错误][策略删除KEY] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
-    logger.error(err);
-    ctx.status = 404;
-    ctx.body = err.message;
-  }
-});
-router.post("/keyGet", async (ctx) => {
-  try {
-    const { ployMarkId } = ctx.request.body;
-    if (!ployMarkId) {
-      ctx.status = 400;
-      ctx.body = "参数错误";
-      return;
-    }
-    const ploy = await db.Ploy.findOne({ markId: ployMarkId });
-    if (!ploy) {
-      ctx.status = 400;
-      ctx.body = "策略不存在";
-      return;
-    }
-    const key = await db.Key.find(
-      { _id: ploy.keyId },
-      { name: 1, markId: 1, _id: 0 },
-    ).exec();
-    // 根据key.nameID取用户name
-    const keyName = [];
-    for (let i = 0; i < key.length; i++) {
-      const user = await db.User.findOne({
-        keyId: key[i]._id,
-      });
-      keyName.push({
-        name: key[i].name,
-        markId: key[i].markId,
-        userName: user.name,
-      });
-    }
-    ctx.body = keyName;
-  } catch (err) {}
-});
+
+router.use("/key", routerKey.routes(), routerKey.allowedMethods());
 module.exports = router;

@@ -3,6 +3,8 @@ const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
 const randomId = require("../../../controllers/randomId");
 
+const routerUpdate = new koaRouter();
+
 const router = new koaRouter();
 
 router.post("/add", async (ctx) => {
@@ -28,7 +30,6 @@ router.post("/add", async (ctx) => {
     }
     // 判断是否存在
     const keyExist = await db.Key.findOne({ exchange, key });
-    console.log(keyExist);
     if (keyExist) {
       ctx.status = 400;
       ctx.body = "KEY已存在";
@@ -94,34 +95,61 @@ router.post("/add", async (ctx) => {
       `[错误][KEY添加] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
-    ctx.status = 404;
+    ctx.status = 500;
     ctx.body = err.message;
   }
 });
 // 删除key
 router.post("/delete", async (ctx) => {
   try {
-    const { markId } = ctx.request.body;
-    if (!markId) {
+    const { keyId } = ctx.request.body;
+    if (!keyId) {
       ctx.status = 400;
       ctx.body = "参数错误";
       return;
     }
-    const key = await db.Key.findOne({ markId });
+    const key = await db.Key.findOne({ _id: keyId });
     if (!key) {
       ctx.status = 400;
       ctx.body = "KEY不存在";
       return;
     }
-    await db.Key.deleteOne({ markId });
-    ctx.body = "删除成功";
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY与账户不符";
+      return;
+    }
+    // 删除策略
+    for (let i = 0; i < key.ployId.length; i++) {
+      const ploy = await db.Ploy.findOne({ _id: key.ployId[i] });
+      if (!ploy) {
+        continue;
+      }
+      ploy.keyId = ploy.keyId.filter((item) => item !== keyId);
+      await db.Ploy.updateOne(
+        {
+          _id: ploy._id,
+        },
+        {
+          $set: {
+            keyId: ploy.keyId,
+          },
+        },
+      );
+    }
+
+    await db.Key.deleteOne({ _id: keyId });
+    ctx.body = "ok";
   } catch (err) {
     logger.error(
       `[错误][KEY删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
-    ctx.status = 404;
+    ctx.status = 500;
     ctx.body = err.message;
   }
 });
+
+router.use("/update", routerUpdate.routes(), routerUpdate.allowedMethods());
+
 module.exports = router;
