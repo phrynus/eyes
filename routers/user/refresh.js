@@ -8,10 +8,8 @@ const router = new koaRouter();
 
 router.post("/", tokenVerify, async (ctx) => {
   try {
-    // 验证刷新令牌
-    const decoded = jwt.verify(ctx.user, config.tokenAccessSecret);
     await db.User.updateOne(
-      { _id: decoded.userId },
+      { _id: ctx.user.userId },
       {
         $set: {
           login_ip: ctx.getIp,
@@ -20,7 +18,7 @@ router.post("/", tokenVerify, async (ctx) => {
       },
     );
     ctx.body = jwt.sign(
-      { userName: decoded.userName, userId: decoded.userId },
+      { userName: ctx.user.userName, userId: ctx.user.userId },
       config.tokenAccessSecret,
       { expiresIn: "1h" },
     );

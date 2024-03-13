@@ -2,9 +2,10 @@ const koa = require("koa");
 const koaRouter = require("koa-router");
 const koaBody = require("koa-bodyparser");
 
-const routerTv = require("./tv");
+const routerTrade = require("./trade");
 const routerUser = require("./user");
 const routerApi = require("./api");
+const routerUnit = require("./unit");
 const logger = require("../lib/logger");
 
 const app = new koa();
@@ -22,9 +23,10 @@ app.use(async (ctx, next) => {
   await next();
 });
 
-router.use("/tv", routerTv.routes(), routerTv.allowedMethods());
+router.use("/trade", routerTrade.routes(), routerTrade.allowedMethods());
 router.use("/user", routerUser.routes(), routerUser.allowedMethods());
 router.use("/api", routerApi.routes(), routerApi.allowedMethods());
+router.use("/unit", routerUnit.routes(), routerUnit.allowedMethods());
 app.use(async (ctx, next) => {
   await next();
   if (ctx.status === 404) {

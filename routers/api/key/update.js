@@ -36,7 +36,6 @@ router.post("/", async (ctx) => {
     key.safe_both = safe_both || key.safe_both || true;
     key.safe_trade = safe_trade || key.safe_trade || true;
     await key.save();
-    ctx.status = 200;
     ctx.body = {
       name: key.name,
       exchange: key.exchange,
@@ -94,7 +93,6 @@ router.post("/mark", async (ctx) => {
       Date.now(),
     );
     await key.save();
-    ctx.status = 200;
     ctx.body = {
       name: key.name,
       exchange: key.exchange,
@@ -110,5 +108,48 @@ router.post("/mark", async (ctx) => {
     ctx.body = err.message;
   }
 });
+// 删除策略
+router.post("/ployDelete", async (ctx) => {
+  try {
+    const { keyId, ployId } = ctx.request.body;
+    if (!keyId || !ployId) {
+      ctx.status = 400;
+      ctx.body = "ID不能为空";
+      return;
+    }
+    const key = await db.Key.findById(keyId);
+    if (!key) {
+      ctx.status = 400;
+      ctx.body = "ID不存在";
+      return;
+    }
+    key.ployId = key.ployId.filter((id) => id !== ployId);
+    await key.save();
 
+    for (let j = 0; j < key.ployId.length; j++) {
+      let ploy = await db.Ploy.findOne({ _id: key.ployId[j] });
+      let user = await db.User.findOne({ _id: ploy.userId });
+      key.ployId[j] = {
+        ploy: ploy._id,
+        ployName: ploy.name,
+        ployUser: user.name,
+      };
+    }
+
+    ctx.body = {
+      name: key.name,
+      exchange: key.exchange,
+      markId: key.markId,
+      seeId: key.seeId,
+      ployId: key.ployId,
+    };
+  } catch (err) {
+    logger.error(
+      `[错误][KEY删除策略] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
+    );
+    logger.error(err);
+    ctx.status = 500;
+    ctx.body = err.message;
+  }
+});
 module.exports = router;
