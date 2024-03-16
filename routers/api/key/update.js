@@ -21,8 +21,8 @@ router.post("/", async (ctx) => {
         if (
           !/^[\d]{1,3}$/.test(safe_tradeList[key].Lever) ||
           !/^(true|false)$/.test(safe_tradeList[key].split) ||
-          !/^(true|false)$/.test(safe_tradeList[key].full) ||
-          !/^(true|false)$/.test(safe_tradeList[key].must)
+          !/^(true|false)$/.test(safe_tradeList[key].must) ||
+          !/^(LIMIT|MARKET)$/.test(safe_tradeList[key].type)
         ) {
           ctx.status = 400;
           ctx.body = "格式错误";
@@ -37,7 +37,6 @@ router.post("/", async (ctx) => {
       ctx.body = "ID不存在";
       return;
     }
-    console.log(key, safe_tradeList || key.safe_tradeList);
     key.name = name || key.name;
     key.safe_tradeList = safe_tradeList || key.safe_tradeList;
     key.safe_num = safe_num || key.safe_num;

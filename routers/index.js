@@ -16,9 +16,11 @@ app.use(koaBody());
 app.use(koaHelmet());
 
 app.use(async (ctx, next) => {
-  ctx.getIp = (ctx.get("X-Forwarded-For") || ctx.get("x-real-ip") || ctx.ip)
-    .replace(/:\d+$/, "")
-    .replace(/::ffff:/, "");
+  ctx.getIp = (
+    ctx.get("X-Forwarded-For") ||
+    ctx.get("x-real-ip") ||
+    ctx.ip
+  ).replace(/:\d+$/, "");
   logger.trace(
     `[WEB][${ctx.getIp}][${ctx.request.url}] > ${JSON.stringify(ctx.request.body)} `,
   );

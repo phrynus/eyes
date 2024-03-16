@@ -3,12 +3,12 @@ const logger = require("../../lib/logger");
 const db = require("../../lib/db");
 
 const router = new koaRouter();
-router.post("/", async (ctx) => {
+router.post("/ploy/:markId", async (ctx) => {
   try {
     ctx.body = "";
   } catch (e) {}
 });
-router.post("/ploy", async (ctx) => {
+router.post("/:markId", async (ctx) => {
   try {
     ctx.body = "";
   } catch (e) {}

@@ -6,20 +6,20 @@ const axios = require("axios");
 module.exports = async function () {
   try {
     // 初始化交易所 - 币安
-    // await axios(config.bin.binance.baseUrl + "/fapi/v1/time")
-    //   .then((res) => {
-    //     config.timeOffset = res.data.serverTime - new Date().getTime();
-    //   })
-    //   .catch((err) => {
-    //     throw err.response?.data || err.message;
-    //   });
-    // await axios(config.bin.binance.baseUrl + "/fapi/v1/exchangeInfo")
-    //   .then((res) => {
-    //     config.bin.binance.exchangeInfo = res.data || {};
-    //   })
-    //   .catch((err) => {
-    //     throw err.response?.data || err.message;
-    //   });
+    await axios(config.bin.binance.baseUrl + "/fapi/v1/time")
+      .then((res) => {
+        config.timeOffset = res.data.serverTime - new Date().getTime();
+      })
+      .catch((err) => {
+        throw err.response?.data || err.message;
+      });
+    await axios(config.bin.binance.baseUrl + "/fapi/v1/exchangeInfo")
+      .then((res) => {
+        config.bin.binance.exchangeInfo = res.data || {};
+      })
+      .catch((err) => {
+        throw err.response?.data || err.message;
+      });
     // 初始化交易所
 
     let KeyData = await db.Key.find();
@@ -31,9 +31,9 @@ module.exports = async function () {
           baseUrl: config.bin.binance.baseUrl,
           key: KeyData[i].key,
           secret: KeyData[i].secret,
-          maxRetries: 10,
-          retryDelay: 100,
-          timeOffset: 0,
+          maxRetries: 5,
+          retryDelay: 200,
+          timeOffset: config.bin.binance.timeOffset,
         });
       }
 
@@ -42,7 +42,7 @@ module.exports = async function () {
         bin,
       };
     }
-    console.log(config.key);
+    // console.log(config.key);
     return true;
   } catch (err) {
     throw err;
