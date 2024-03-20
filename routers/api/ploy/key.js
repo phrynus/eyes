@@ -1,6 +1,7 @@
 const koaRouter = require("koa-router");
 const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
+const config = require("../../../config");
 
 const router = new koaRouter();
 router.post("/add", async (ctx) => {
@@ -12,53 +13,55 @@ router.post("/add", async (ctx) => {
       return;
     }
     const key = await db.Key.findOne({ _id: keyId });
+    const user = await db.User.findOne({ _id: key.userId });
     const ploy = await db.Ploy.findOne({ _id: ployId });
+    const ployUser = await db.User.findOne({ _id: ploy.userId });
+
     if (!key || !ploy) {
       ctx.status = 400;
       ctx.body = "KEY或策略不存在";
       return;
     }
-    // 判断KEY是否已经添加
-    if (ploy.keyId.includes(key._id.toString())) {
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY不属于该账户";
+      return;
+    } else if (ploy.keyId.hasOwnProperty(keyId)) {
       ctx.status = 400;
       ctx.body = "KEY已经添加";
       return;
-    }
-    // 判断KEY数量
-    if (ploy.keyId.length >= 5) {
+    } else if (Object.keys(ploy.keyId).length >= 5) {
       ctx.status = 400;
       ctx.body = "策略KEY数量已达上限";
       return;
+    } else {
+      ploy.keyId[keyId] = {};
+      ploy.keyId[keyId].key = keyId;
+      ploy.keyId[keyId].keyName = key.name;
+      ploy.keyId[keyId].keyUser = user.name;
+      await db.Ploy.updateOne(
+        { _id: ployId },
+        {
+          $set: {
+            keyId: ploy.keyId,
+          },
+        },
+      );
+      key.ployId[ployId] = {};
+      key.ployId[ployId].ploy = ployId;
+      key.ployId[ployId].ployName = ploy.name;
+      key.ployId[ployId].ployUser = ployUser.name;
+      key.ployId[ployId].lever = 1;
+      await db.Key.updateOne(
+        { _id: keyId },
+        {
+          $set: {
+            ployId: key.ployId,
+          },
+        },
+      );
     }
-    // id转成字符串
-    ploy.keyId.push(key._id.toString());
-    await db.Ploy.updateOne(
-      { _id: ploy._id },
-      {
-        $set: {
-          keyId: ploy.keyId,
-        },
-      },
-    );
-    key.ployId.push(ploy._id.toString());
-    await db.Key.updateOne(
-      { _id: key._id },
-      {
-        $set: {
-          ployId: key.ployId,
-        },
-      },
-    );
 
-    for (let j = 0; j < ploy.keyId.length; j++) {
-      let key = await db.Key.findOne({ _id: ploy.keyId[j] });
-      let user = await db.User.findOne({ _id: key.userId });
-      ploy.keyId[j] = {
-        key: key._id,
-        keyName: key.name,
-        keyUser: user.name,
-      };
-    }
     ctx.body = ploy.keyId;
   } catch (err) {
     logger.error(
@@ -90,11 +93,9 @@ router.post("/delete", async (ctx) => {
       return;
     }
     // 删除KEY
-    ploy.keyId = ploy.keyId.filter((item) => item !== keyId);
+    delete ploy.keyId[keyId];
     await db.Ploy.updateOne(
-      {
-        _id: ploy._id,
-      },
+      { _id: ploy._id },
       {
         $set: {
           keyId: ploy.keyId,
@@ -102,26 +103,16 @@ router.post("/delete", async (ctx) => {
       },
     );
     // 删除策略
-    key.ployId = key.ployId.filter((item) => item !== ployId);
+    delete key.ployId[ployId];
     await db.Key.updateOne(
-      {
-        _id: key._id,
-      },
+      { _id: key._id },
       {
         $set: {
           ployId: key.ployId,
         },
       },
     );
-    for (let j = 0; j < ploy.keyId.length; j++) {
-      let key = await db.Key.findOne({ _id: ploy.keyId[j] });
-      let user = await db.User.findOne({ _id: key.userId });
-      ploy.keyId[j] = {
-        key: key._id,
-        keyName: key.name,
-        keyUser: user.name,
-      };
-    }
+
     ctx.body = ploy.keyId;
   } catch (err) {
     logger.error(
@@ -146,16 +137,12 @@ router.post("/list", async (ctx) => {
       ctx.body = "策略不存在";
       return;
     }
-
-    for (let j = 0; j < ploy.keyId.length; j++) {
-      let key = await db.Key.findOne({ _id: ploy.keyId[j] });
-      let user = await db.User.findOne({ _id: key.userId });
-      ploy.keyId[j] = {
-        key: key._id,
-        keyName: key.name,
-        keyUser: user.name,
-      };
+    if (ploy.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "策略不属于该账户";
+      return;
     }
+
     ctx.body = ploy.keyId;
   } catch (err) {
     logger.error(

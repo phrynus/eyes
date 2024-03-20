@@ -21,9 +21,9 @@ app.use(async (ctx, next) => {
     ctx.get("x-real-ip") ||
     ctx.ip
   ).replace(/:\d+$/, "");
-  logger.trace(
-    `[WEB][${ctx.getIp}][${ctx.request.url}] > ${JSON.stringify(ctx.request.body)} `,
-  );
+  // logger.trace(
+  //   `[WEB][${ctx.getIp}][${ctx.request.url}] > ${JSON.stringify(ctx.request.body)} `,
+  // );
   await next();
 });
 

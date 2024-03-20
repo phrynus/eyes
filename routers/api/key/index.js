@@ -96,17 +96,16 @@ router.post("/delete", async (ctx) => {
       ctx.body = "KEY与账户不符";
       return;
     }
-    // 删除策略
-    for (let i = 0; i < key.ployId.length; i++) {
-      const ploy = await db.Ploy.findOne({ _id: key.ployId[i] });
+    // 删除KEY
+    for (const ployIdKey in key.ployId) {
+      console.log(ployIdKey);
+      let ploy = await db.Ploy.findOne({ _id: ployIdKey });
       if (!ploy) {
         continue;
       }
-      ploy.keyId = ploy.keyId.filter((item) => item !== keyId);
+      delete ploy.keyId[keyId];
       await db.Ploy.updateOne(
-        {
-          _id: ploy._id,
-        },
+        { _id: ploy._id },
         {
           $set: {
             keyId: ploy.keyId,
@@ -114,7 +113,6 @@ router.post("/delete", async (ctx) => {
         },
       );
     }
-
     await db.Key.deleteOne({ _id: keyId });
     ctx.body = "ok";
   } catch (err) {

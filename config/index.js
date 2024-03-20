@@ -21,6 +21,7 @@ module.exports = {
   ],
   safeRepeatList: [],
   key: {},
+  coins: {},
   // Token 密钥
   tokenAccessSecret: "CC33B52ED2C058F505DC3BFD6B7AA32F",
   tv: {

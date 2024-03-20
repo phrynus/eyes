@@ -9,11 +9,11 @@ const analysis = require("../../lib/analysis");
 
 const router = new koaRouter();
 
-router.post("/ploy/:markId", async (ctx) => {
+router.post("/ploy", async (ctx) => {
   try {
-    const { markId } = ctx.params;
     // 取参数
     const params = ({
+      markId,
       ticker,
       market_position,
       prev_market_position,
@@ -46,6 +46,10 @@ router.post("/ploy/:markId", async (ctx) => {
       comment: escapeHtml(params.comment),
       params,
     });
+    logger.info(
+      `[TRADE][TV][PLOY][${newPloyLog._id}][接收]`,
+      JSON.stringify(newPloyLog),
+    );
 
     const keyNames = [];
     for (let i = 0; i < ploy.keyId.length; i++) {
@@ -73,6 +77,7 @@ router.post("/ploy/:markId", async (ctx) => {
             retryDelay: 200,
             timeOffset: config.bin.binance.timeOffset,
           }),
+          coins: [],
         };
       }
       let newKeyLog = new db.KeyLog({
@@ -83,6 +88,10 @@ router.post("/ploy/:markId", async (ctx) => {
         params,
       });
       await newKeyLog.save();
+      logger.info(
+        `[${newKeyLog._id}][TRADE][TV][PLOY][TV][接收]`,
+        JSON.stringify(newKeyLog),
+      );
       analysis.Tv({
         newKeyLog,
         bin,
@@ -99,11 +108,6 @@ router.post("/ploy/:markId", async (ctx) => {
     newPloyLog.keyNames = keyNames;
     await newPloyLog.save();
 
-    logger.info(
-      `[TRADE][TV][PLOY][${newPloyLog._id}][接收]`,
-      JSON.stringify(newPloyLog),
-    );
-
     ctx.body = "ok";
   } catch (err) {
     logger.error(
@@ -114,11 +118,12 @@ router.post("/ploy/:markId", async (ctx) => {
     ctx.body = err.message;
   }
 });
-router.post("/:markId", async (ctx) => {
+const order = require("../../lib/order");
+router.post("/", async (ctx) => {
   try {
-    const { markId } = ctx.params;
     // 取参数
     const params = ({
+      markId,
       ticker,
       market_position,
       prev_market_position,
@@ -131,6 +136,15 @@ router.post("/:markId", async (ctx) => {
       type,
       comment,
     } = ctx.request.body);
+    // if (config.bin[params.markId]) {
+    //   order.Binance({
+    //     bin: config.bin[params.markId],
+    //     params,
+    //   });
+    // }
+    // ctx.body = "ok";
+    // return;
+
     const key = await db.Key.findOne({ markId });
     if (!key) {
       ctx.status = 400;
@@ -155,6 +169,7 @@ router.post("/:markId", async (ctx) => {
           retryDelay: 200,
           timeOffset: config.bin.binance.timeOffset,
         }),
+        coins: [],
       };
     }
     const newKeyLog = new db.KeyLog({
@@ -166,6 +181,10 @@ router.post("/:markId", async (ctx) => {
     });
 
     await newKeyLog.save();
+    logger.info(
+      `[TRADE][TV][TV][${newKeyLog._id}][接收]`,
+      JSON.stringify(newKeyLog),
+    );
     analysis.Tv({
       newKeyLog,
       bin,

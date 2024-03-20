@@ -34,7 +34,7 @@ router.post("/add", async (ctx) => {
       // 标记ID
       markId: randomId("mark", ctx.user.userId, name, Date.now()),
       // keyID
-      keyId: [],
+      keyId: {},
       // 名称
       name,
     });
@@ -71,22 +71,17 @@ router.post("/delete", async (ctx) => {
       ctx.body = "策略不属于该账户";
       return;
     }
-    // 删除策略里面的key
-    for (let i = 0; i < ploy.keyId.length; i++) {
-      const key = await db.Key.findOne({ _id: ploy.keyId[i] });
-      if (!key) {
-        continue;
-      }
-      key.ployId = key.ployId.filter((item) => item !== ployId);
-      await db.Key.updateOne(
-        { _id: key._id },
-        {
-          $set: {
-            ployId: key.ployId,
-          },
+    const key = await db.Key.findOne({ _id: ploy.keyId[i] });
+    // 删除策略
+    delete key.ployId[ployId];
+    await db.Ploy.updateOne(
+      { _id: ploy._id },
+      {
+        $set: {
+          keyId: ploy.keyId,
         },
-      );
-    }
+      },
+    );
 
     await db.Ploy.deleteOne({ _id: ployId });
     ctx.body = "ok";

@@ -14,12 +14,23 @@ router.post("/", async (ctx) => {
       ctx.body = "ID不能为空";
       return;
     }
+    const key = await db.Key.findById(keyId);
+    if (!key) {
+      ctx.status = 400;
+      ctx.body = "ID不存在";
+      return;
+    }
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY与账户不符";
+      return;
+    }
 
     if (safe_tradeList) {
       for (let key in safe_tradeList) {
         // 用正则判断格式
         if (
-          !/^[\d]{1,3}$/.test(safe_tradeList[key].Lever) ||
+          !/^[\d]{1,3}$/.test(safe_tradeList[key].lever) ||
           !/^(true|false)$/.test(safe_tradeList[key].split) ||
           !/^(true|false)$/.test(safe_tradeList[key].must) ||
           !/^(LIMIT|MARKET)$/.test(safe_tradeList[key].type)
@@ -31,12 +42,6 @@ router.post("/", async (ctx) => {
       }
     }
 
-    const key = await db.Key.findById(keyId);
-    if (!key) {
-      ctx.status = 400;
-      ctx.body = "ID不存在";
-      return;
-    }
     key.name = name || key.name;
     key.safe_tradeList = safe_tradeList || key.safe_tradeList;
     key.safe_num = safe_num || key.safe_num;
@@ -78,6 +83,11 @@ router.post("/mark", async (ctx) => {
       ctx.body = "ID不存在";
       return;
     }
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY与账户不符";
+      return;
+    }
     key.markId = randomId("mark", Date.now());
     key.seeId = randomId("see", Date.now());
     await key.save();
@@ -112,27 +122,38 @@ router.post("/ployDelete", async (ctx) => {
       ctx.body = "ID不存在";
       return;
     }
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY与账户不符";
+      return;
+    }
     const ploy = await db.Ploy.findById(ployId);
     if (!ploy) {
       ctx.status = 400;
       ctx.body = "策略不存在";
       return;
     }
-    key.ployId = key.ployId.filter((id) => id !== ployId);
-    await key.save();
-    ploy.keyId = ploy.keyId.filter((id) => id !== keyId);
+    // 删除KEY
+    delete ploy.keyId[keyId];
     await ploy.save();
-
-    for (let j = 0; j < key.ployId.length; j++) {
-      let ploy = await db.Ploy.findOne({ _id: key.ployId[j] });
-      let user = await db.User.findOne({ _id: ploy.userId });
-      key.ployId[j] = {
-        ploy: ploy._id,
-        ployName: ploy.name,
-        ployUser: user.name,
-      };
-    }
-
+    await db.Ploy.updateOne(
+      { _id: ploy._id },
+      {
+        $set: {
+          keyId: ploy.keyId,
+        },
+      },
+    );
+    // 删除策略
+    delete key.ployId[ployId];
+    await db.Key.updateOne(
+      { _id: key._id },
+      {
+        $set: {
+          ployId: key.ployId,
+        },
+      },
+    );
     ctx.body = {
       _id: key._id,
       name: key.name,
@@ -144,6 +165,53 @@ router.post("/ployDelete", async (ctx) => {
   } catch (err) {
     logger.error(
       `[错误][KEY删除策略] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
+    );
+    logger.error(err);
+    ctx.status = 500;
+    ctx.body = err.message;
+  }
+});
+router.post("/ployLever", async (ctx) => {
+  try {
+    const { keyId, ployId, lever } = ctx.request.body;
+
+    if (!keyId || !ployId || !lever) {
+      ctx.status = 400;
+      ctx.body = "ID不能为空";
+      return;
+    }
+    // lever要是正数最小不能小于0.1最大不能为1000
+    if (!/^[0-9]+.?[0-9]*$/.test(lever) || lever < 0.1 || lever > 1000) {
+      ctx.status = 400;
+      ctx.body = "杠杆倍数错误";
+      return;
+    }
+    const key = await db.Key.findById(keyId);
+    if (!key) {
+      ctx.status = 400;
+      ctx.body = "ID不存在";
+      return;
+    }
+    if (key.userId !== ctx.user.userId) {
+      ctx.status = 400;
+      ctx.body = "KEY与账户不符";
+      return;
+    }
+
+    key.ployId[ployId].lever = Number(lever);
+    await db.Key.updateOne(
+      { _id: key._id },
+      {
+        $set: {
+          ployId: key.ployId,
+        },
+      },
+    );
+
+    ctx.body = "ok";
+  } catch (err) {
+    logger.error(
+      `[错误][KEY删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
     ctx.status = 500;
