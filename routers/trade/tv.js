@@ -59,6 +59,11 @@ router.post("/ploy", async (ctx) => {
         ctx.body = "markId not found";
         return;
       }
+
+      if (key.ployId[params.markId]) {
+        params.contracts = key.ployId[params.markId].lever * params.contracts;
+      }
+
       let user = await db.User.findOne({ _id: key.userId });
       if (!user) {
         ctx.status = 400;

@@ -23,6 +23,9 @@ dependencies:
   koa-bodyparser:
     specifier: ^4.4.1
     version: 4.4.1
+  koa-cors:
+    specifier: ^0.0.16
+    version: 0.0.16
   koa-helmet:
     specifier: ^7.0.2
     version: 7.0.2
@@ -546,6 +549,10 @@ packages:
     dependencies:
       co: 4.6.0
       koa-compose: 4.1.0
+    dev: false
+
+  /koa-cors@0.0.16:
+    resolution: {integrity: sha512-s15knPxe3AJBi2I/ZMPL0pSqU+PLYLO6k5tI0AqClkzavowvocPlSdFUwaHNqtjHMhsGmiq2tiX/25iILJx9YA==}
     dev: false
 
   /koa-helmet@7.0.2:

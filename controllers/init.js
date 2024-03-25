@@ -41,7 +41,7 @@ module.exports = async function () {
         client,
       };
     }
-    // console.log(config.bin);
+    console.log(config.bin);
     return true;
   } catch (err) {
     throw err;

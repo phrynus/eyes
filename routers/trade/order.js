@@ -45,15 +45,18 @@ router.post("/ploy", async (ctx) => {
     for (let i = 0; i < ploy.keyId.length; i++) {
       let key = await db.Key.findOne({ _id: ploy.keyId[i] });
       if (!key) {
-        ctx.status = 400;
-        ctx.body = "markId not found";
-        return;
+        logger.error(`[错误][TRADE][TV][PLOY] key not found ${ploy.keyId[i]}`);
+        continue;
+      }
+      if (key.ployId[params.markId]) {
+        params.contracts = key.ployId[params.markId].lever * params.contracts;
       }
       let user = await db.User.findOne({ _id: key.userId });
       if (!user) {
-        ctx.status = 400;
-        ctx.body = "userId not found";
-        return;
+        logger.error(
+          `[错误][TRADE][TV][PLOY] "userId not found" ${ploy.keyId[i]}`,
+        );
+        continue;
       }
       let bin = null;
       if (key.exchange === "binance") {
