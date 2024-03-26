@@ -1,6 +1,7 @@
 const koaRouter = require("koa-router");
 const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
+const initID = require("../../../controllers/initID");
 const randomId = require("../../../controllers/randomId");
 
 const router = new koaRouter();
@@ -48,6 +49,7 @@ router.post("/", async (ctx) => {
     key.safe_both = safe_both || key.safe_both;
     key.safe_trade = safe_trade || key.safe_trade;
     await key.save();
+    await initID(key._id);
     ctx.body = {
       _id: key._id,
       name: key.name,
@@ -91,6 +93,7 @@ router.post("/mark", async (ctx) => {
     key.markId = randomId("mark", Date.now());
     key.seeId = randomId("see", Date.now());
     await key.save();
+    await initID(key._id);
     ctx.body = {
       _id: key._id,
       name: key.name,
@@ -165,53 +168,6 @@ router.post("/ployDelete", async (ctx) => {
   } catch (err) {
     logger.error(
       `[错误][KEY删除策略] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
-    logger.error(err);
-    ctx.status = 500;
-    ctx.body = err.message;
-  }
-});
-router.post("/ployLever", async (ctx) => {
-  try {
-    const { keyId, ployId, lever } = ctx.request.body;
-
-    if (!keyId || !ployId || !lever) {
-      ctx.status = 400;
-      ctx.body = "ID不能为空";
-      return;
-    }
-    // lever要是正数最小不能小于0.1最大不能为1000
-    if (!/^[0-9]+.?[0-9]*$/.test(lever) || lever < 0.1 || lever > 1000) {
-      ctx.status = 400;
-      ctx.body = "杠杆倍数错误";
-      return;
-    }
-    const key = await db.Key.findById(keyId);
-    if (!key) {
-      ctx.status = 400;
-      ctx.body = "ID不存在";
-      return;
-    }
-    if (key.userId !== ctx.user.userId) {
-      ctx.status = 400;
-      ctx.body = "KEY与账户不符";
-      return;
-    }
-
-    key.ployId[ployId].lever = Number(lever);
-    await db.Key.updateOne(
-      { _id: key._id },
-      {
-        $set: {
-          ployId: key.ployId,
-        },
-      },
-    );
-
-    ctx.body = "ok";
-  } catch (err) {
-    logger.error(
-      `[错误][KEY删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
     );
     logger.error(err);
     ctx.status = 500;

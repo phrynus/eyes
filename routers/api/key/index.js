@@ -3,6 +3,8 @@ const logger = require("../../../lib/logger");
 const db = require("../../../lib/db");
 const validators = require("../../../controllers/validators");
 
+const config = require("../../../config");
+
 const randomId = require("../../../controllers/randomId");
 
 const routerUpdate = require("./update");
@@ -29,7 +31,7 @@ router.post("/add", async (ctx) => {
     }
     // 判断名下有多少个KEY
     const keys = await db.Key.find({ userId: ctx.user.userId });
-    if (keys.length > 2) {
+    if (keys.length > 5) {
       ctx.status = 400;
       ctx.body = "KEY数量已达上限";
       return;
@@ -114,6 +116,7 @@ router.post("/delete", async (ctx) => {
       );
     }
     await db.Key.deleteOne({ _id: keyId });
+    delete config.bin[key.markId];
     ctx.body = "ok";
   } catch (err) {
     logger.error(

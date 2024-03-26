@@ -29,6 +29,9 @@ router.use(async (ctx, next) => {
   if (hasRepeat) {
     ctx.status = 500;
     ctx.body = "重复请求";
+    logger.error(
+      `[错误][重复请求] ${ctx.request.body} > ${ctx.getIp} > ${JSON.stringify(ctx.request.body)}`,
+    );
   } else {
     config.safeRepeatList.unshift({
       time: time.toISOString(),
@@ -37,6 +40,9 @@ router.use(async (ctx, next) => {
     if (config.safeRepeatList.length > 1000) {
       config.safeRepeatList.pop();
     }
+    logger.trace(
+      `[WEB][${ctx.getIp}][${ctx.request.url}] > ${JSON.stringify(ctx.request.body)} `,
+    );
     await next();
   }
 });

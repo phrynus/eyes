@@ -30,7 +30,7 @@ router.post("/add", async (ctx) => {
       ctx.status = 400;
       ctx.body = "KEY已经添加";
       return;
-    } else if (Object.keys(ploy.keyId).length >= 5) {
+    } else if (Object.keys(ploy.keyId).length >= 10) {
       ctx.status = 400;
       ctx.body = "策略KEY数量已达上限";
       return;
