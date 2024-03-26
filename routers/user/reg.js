@@ -3,6 +3,8 @@ const db = require("../../lib/db");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 const logger = require("../../lib/logger");
+const jwt = require("jsonwebtoken");
+const config = require("../../config");
 
 const router = new koaRouter();
 
@@ -42,10 +44,21 @@ router.post("/", async (ctx) => {
       create_at: new Date(),
     });
 
+    const accessToken = jwt.sign(
+      { userName: newUser.name, userId: newUser._id },
+      config.tokenAccessSecret,
+      {
+        expiresIn: "1h",
+      },
+    );
     //
     await newUser.save();
     logger.info(`[注册] ${JSON.stringify(newUser)}`);
-    ctx.body = await qrcode.toDataURL(totpSecret.otpauth_url);
+    ctx.body = {
+      name: newUser.name,
+      accessToken,
+      totp: await qrcode.toDataURL(totpSecret.otpauth_url),
+    };
   } catch (err) {
     logger.error(
       `[错误][注册] ${err.message} > ${JSON.stringify(ctx.request.body)}`,

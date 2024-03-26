@@ -29,15 +29,11 @@ router.post("/ploy", async (ctx) => {
 
     const ploy = await db.Ploy.findOne({ markId });
     if (!ploy) {
-      ctx.status = 400;
-      ctx.body = "markId not found";
-      return;
+      throw new Error("markId not found");
     }
     const ployUser = await db.User.findOne({ _id: ploy.userId });
     if (!ployUser) {
-      ctx.status = 400;
-      ctx.body = "userId not found";
-      return;
+      throw new Error("userId not found");
     }
     const newPloyLog = new db.PloyLog({
       userName: ployUser.name,
@@ -52,23 +48,23 @@ router.post("/ploy", async (ctx) => {
     );
 
     const keyNames = [];
-    for (let i = 0; i < ploy.keyId.length; i++) {
-      let key = await db.Key.findOne({ _id: ploy.keyId[i] });
+    const keyIds = Object.keys(ploy.keyId);
+    for (let i = 0; i < keyIds.length; i++) {
+      let key = await db.Key.findOne({ _id: keyIds[i] });
       if (!key) {
-        ctx.status = 400;
-        ctx.body = "markId not found";
-        return;
+        logger.error(`[错误][TRADE][TV][PLOY] key not found ${ploy.keyId[i]}`);
+        continue;
       }
-
       if (key.ployId[params.markId]) {
         params.contracts = key.ployId[params.markId].lever * params.contracts;
       }
 
       let user = await db.User.findOne({ _id: key.userId });
       if (!user) {
-        ctx.status = 400;
-        ctx.body = "userId not found";
-        return;
+        logger.error(
+          `[错误][TRADE][TV][PLOY] "userId not found" ${ploy.keyId[i]}`,
+        );
+        continue;
       }
       let bin = null;
       if (key.exchange === "binance") {

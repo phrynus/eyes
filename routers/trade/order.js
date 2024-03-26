@@ -42,8 +42,9 @@ router.post("/ploy", async (ctx) => {
       JSON.stringify(newPloyLog),
     );
     const keyNames = [];
-    for (let i = 0; i < ploy.keyId.length; i++) {
-      let key = await db.Key.findOne({ _id: ploy.keyId[i] });
+    const keyIds = Object.keys(ploy.keyId);
+    for (let i = 0; i < keyIds.length; i++) {
+      let key = await db.Key.findOne({ _id: keyIds[i] });
       if (!key) {
         logger.error(`[错误][TRADE][TV][PLOY] key not found ${ploy.keyId[i]}`);
         continue;
