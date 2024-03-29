@@ -35,13 +35,24 @@ module.exports = async function () {
           timeOffset: config.bin.binance.timeOffset,
         });
       }
+      if (!c) {
+        // 跳出循环
+        continue;
+      }
+      let k = await c.getAccount().catch((err) => {
+        return false;
+      });
+      if (!k) {
+        // 跳出循环
+        continue;
+      }
       config.bin[key.markId] = {
         ...key._doc,
         coins: [],
-        client,
+        client: c,
       };
     }
-    console.log(config.bin);
+    // console.log(config.bin);
     return true;
   } catch (err) {
     throw err;

@@ -1,24 +1,27 @@
-const koaRouter = require("koa-router");
-const logger = require("../../../lib/logger");
-const db = require("../../../lib/db");
-const validators = require("../../../controllers/validators");
+const koaRouter = require('koa-router');
+const logger = require('../../../lib/logger');
+const db = require('../../../lib/db');
 
-const config = require("../../../config");
+const client = require('../../../lib/client');
 
-const randomId = require("../../../controllers/randomId");
+const validators = require('../../../controllers/validators');
 
-const routerUpdate = require("./update");
+const config = require('../../../config');
+
+const randomId = require('../../../controllers/randomId');
+
+const routerUpdate = require('./update');
 
 const router = new koaRouter();
 
-router.post("/add", async (ctx) => {
+router.post('/add', async (ctx) => {
   try {
-    const { exchange, key, secret, password = "", name } = ctx.request.body;
+    const { exchange, key, secret, password = '', name } = ctx.request.body;
 
     // 判断参数
     if (!exchange || !key || !secret || !name) {
       ctx.status = 400;
-      ctx.body = "参数错误";
+      ctx.body = '参数错误';
       return;
     }
 
@@ -26,14 +29,14 @@ router.post("/add", async (ctx) => {
     const keyExist = await db.Key.findOne({ exchange, key });
     if (keyExist) {
       ctx.status = 400;
-      ctx.body = "KEY已存在";
+      ctx.body = 'KEY已存在';
       return;
     }
     // 判断名下有多少个KEY
     const keys = await db.Key.find({ userId: ctx.user.userId });
     if (keys.length > 5) {
       ctx.status = 400;
-      ctx.body = "KEY数量已达上限";
+      ctx.body = 'KEY数量已达上限';
       return;
     }
     // 检查safe_tradeList格式
@@ -43,9 +46,9 @@ router.post("/add", async (ctx) => {
       // 用户ID
       userId: ctx.user.userId,
       // 标记ID
-      markId: randomId("mark", Date.now()),
+      markId: randomId('mark', Date.now()),
       // 观摩ID
-      seeId: randomId("see", Date.now()),
+      seeId: randomId('see', Date.now()),
       exchange,
       key,
       secret,
@@ -60,42 +63,73 @@ router.post("/add", async (ctx) => {
         },
       },
     });
+
+    let c = null;
+    if (exchange === 'binance') {
+      c = new client.Binance({
+        baseUrl: config.bin.binance.baseUrl,
+        key: key,
+        secret: secret,
+        maxRetries: 5,
+        retryDelay: 200,
+        timeOffset: config.bin.binance.timeOffset,
+      });
+    }
+    if (!c) {
+      ctx.status = 400;
+      ctx.body = 'KEY不可用';
+      return;
+    }
+    // 验证是否可用
+    const account = await c.getAccount().catch((err) => {
+      return false;
+    });
+    if (!account) {
+      ctx.status = 400;
+      ctx.body = 'KEY验证失败';
+      return;
+    }
+
+    config.bin[newKey.markId] = {
+      ...newKey._doc,
+      coins: [],
+      client: c,
+    };
+
     await newKey.save();
 
-    ctx.body = {
-      _id: newKey._id,
-      name: newKey.name,
-      exchange: newKey.exchange,
-      markId: newKey.markId,
-      seeId: newKey.seeId,
-    };
+    const rkey = { ...newKey._doc };
+
+    delete rkey.key;
+    delete rkey.secret;
+    delete rkey.password;
+
+    ctx.body = rkey;
   } catch (err) {
-    logger.error(
-      `[错误][KEY添加] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
+    logger.error(`[错误][KEY添加] ${err.message} > ${JSON.stringify(ctx.request.body)}`);
     logger.error(err);
     ctx.status = 500;
     ctx.body = err.message;
   }
 });
 // 删除key
-router.post("/delete", async (ctx) => {
+router.post('/delete', async (ctx) => {
   try {
     const { keyId } = ctx.request.body;
     if (!keyId) {
       ctx.status = 400;
-      ctx.body = "参数错误";
+      ctx.body = '参数错误';
       return;
     }
     const key = await db.Key.findOne({ _id: keyId });
     if (!key) {
       ctx.status = 400;
-      ctx.body = "KEY不存在";
+      ctx.body = 'KEY不存在';
       return;
     }
     if (key.userId !== ctx.user.userId) {
       ctx.status = 400;
-      ctx.body = "KEY与账户不符";
+      ctx.body = 'KEY与账户不符';
       return;
     }
     // 删除KEY
@@ -112,22 +146,20 @@ router.post("/delete", async (ctx) => {
           $set: {
             keyId: ploy.keyId,
           },
-        },
+        }
       );
     }
     await db.Key.deleteOne({ _id: keyId });
     delete config.bin[key.markId];
-    ctx.body = "ok";
+    ctx.body = 'ok';
   } catch (err) {
-    logger.error(
-      `[错误][KEY删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
+    logger.error(`[错误][KEY删除] ${err.message} > ${JSON.stringify(ctx.request.body)}`);
     logger.error(err);
     ctx.status = 500;
     ctx.body = err.message;
   }
 });
 
-router.use("/update", routerUpdate.routes(), routerUpdate.allowedMethods());
+router.use('/update', routerUpdate.routes(), routerUpdate.allowedMethods());
 
 module.exports = router;
