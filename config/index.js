@@ -24,6 +24,11 @@ module.exports = {
   key: {},
   coins: {},
   unit: {},
+  otth: {
+    pond: {
+      "93dd377acbd5ad5a5bc847c7ca0d2094": {},
+    },
+  },
   // Token 密钥
   tokenAccessSecret: "CC33B52ED2C058F505DC3BFD6B7AA32F",
   tv: {
