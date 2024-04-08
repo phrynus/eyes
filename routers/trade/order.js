@@ -1,33 +1,25 @@
-const koaRouter = require("koa-router");
-const logger = require("../../lib/logger");
-const db = require("../../lib/db");
-const client = require("../../lib/client");
-const config = require("../../config");
-const escapeHtml = require("escape-html");
-const analysis = require("../../lib/analysis");
+const koaRouter = require('koa-router');
+const logger = require('../../lib/logger');
+const db = require('../../lib/db');
+const client = require('../../lib/client');
+const config = require('../../config');
+const escapeHtml = require('escape-html');
+const analysis = require('../../lib/analysis');
 
 const router = new koaRouter();
-router.post("/ploy", async (ctx) => {
+router.post('/ploy', async (ctx) => {
   try {
-    const params = ({
-      markId,
-      symbol,
-      position,
-      side,
-      quantity,
-      price,
-      comment = "",
-    } = ctx.request.body);
+    const params = ({ markId, symbol, position, side, quantity, price, comment = '' } = ctx.request.body);
     const ploy = await db.Ploy.findOne({ markId });
     if (!ploy) {
       ctx.status = 400;
-      ctx.body = "markId not found";
+      ctx.body = 'markId not found';
       return;
     }
     const ployUser = await db.User.findOne({ _id: ploy.userId });
     if (!ployUser) {
       ctx.status = 400;
-      ctx.body = "userId not found";
+      ctx.body = 'userId not found';
       return;
     }
     const newPloyLog = new db.PloyLog({
@@ -37,16 +29,17 @@ router.post("/ploy", async (ctx) => {
       comment: escapeHtml(params.comment),
       params,
     });
-    logger.info(
-      `[${newPloyLog._id}][TRADE][TV][PLOY][接收]`,
-      JSON.stringify(newPloyLog),
-    );
+    logger.info(`[${newPloyLog._id}][TRADE][ORDER][PLOY][接收]`, JSON.stringify(newPloyLog));
     const keyNames = [];
     const keyIds = Object.keys(ploy.keyId);
     for (let i = 0; i < keyIds.length; i++) {
       let key = await db.Key.findOne({ _id: keyIds[i] });
       if (!key) {
-        logger.error(`[错误][TRADE][TV][PLOY] key not found ${ploy.keyId[i]}`);
+        logger.error(`[错误][TRADE][ORDER][PLOY] key not found ${ploy.keyId[i]}`);
+        continue;
+      }
+      if (!key.safe_trade) {
+        logger.error(`[错误][TRADE][ORDER][PLOY] 该账户未开启交易 ${ploy.keyId[i]}`);
         continue;
       }
       if (key.ployId[params.markId]) {
@@ -54,13 +47,11 @@ router.post("/ploy", async (ctx) => {
       }
       let user = await db.User.findOne({ _id: key.userId });
       if (!user) {
-        logger.error(
-          `[错误][TRADE][TV][PLOY] "userId not found" ${ploy.keyId[i]}`,
-        );
+        logger.error(`[错误][TRADE][ORDER][PLOY] "userId not found" ${ploy.keyId[i]}`);
         continue;
       }
       let bin = null;
-      if (key.exchange === "binance") {
+      if (key.exchange === 'binance') {
         bin = {
           ...key._doc,
           client: new client.Binance({
@@ -81,10 +72,7 @@ router.post("/ploy", async (ctx) => {
         params,
       });
       await newKeyLog.save();
-      logger.info(
-        `[${newKeyLog._id}][TRADE][ORDER][PLOY][TV][接收]`,
-        JSON.stringify(newKeyLog),
-      );
+      logger.info(`[${newKeyLog._id}][TRADE][ORDER][PLOY][接收]`, JSON.stringify(newKeyLog));
       analysis.Order({
         newKeyLog,
         bin,
@@ -99,41 +87,36 @@ router.post("/ploy", async (ctx) => {
     }
     newPloyLog.keyNames = keyNames;
     await newPloyLog.save();
-    ctx.body = "ok";
+    ctx.body = 'ok';
   } catch (err) {
-    logger.error(
-      `[错误][TRADE][ORDER] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
+    logger.error(`[错误][TRADE][ORDER][PLOY] ${err.message} > ${JSON.stringify(ctx.request.body)}`);
     logger.error(err);
     ctx.status = 500;
     ctx.body = err.message;
   }
 });
-router.post("/", async (ctx) => {
+router.post('/', async (ctx) => {
   try {
-    const params = ({
-      markId,
-      symbol,
-      position,
-      side,
-      quantity,
-      price,
-      comment = "",
-    } = ctx.request.body);
+    const params = ({ markId, symbol, position, side, quantity, price, comment = '' } = ctx.request.body);
     const key = await db.Key.findOne({ markId });
     if (!key) {
       ctx.status = 400;
-      ctx.body = "markId not found";
+      ctx.body = 'markId not found';
+      return;
+    }
+    if (!key.safe_trade) {
+      ctx.status = 400;
+      ctx.body = '该账户未开启交易';
       return;
     }
     const user = await db.User.findOne({ _id: key.userId });
     if (!user) {
       ctx.status = 400;
-      ctx.body = "userId not found";
+      ctx.body = 'userId not found';
       return;
     }
     let bin = null;
-    if (key.exchange === "binance") {
+    if (key.exchange === 'binance') {
       bin = {
         ...key._doc,
         client: new client.Binance({
@@ -154,10 +137,7 @@ router.post("/", async (ctx) => {
       params,
     });
     await newKeyLog.save();
-    logger.info(
-      `[${newKeyLog._id}][TRADE][ORDER][接收]`,
-      JSON.stringify(newKeyLog),
-    );
+    logger.info(`[${newKeyLog._id}][TRADE][ORDER][接收]`, JSON.stringify(newKeyLog));
     analysis.Order({
       newKeyLog,
       bin,
@@ -165,11 +145,9 @@ router.post("/", async (ctx) => {
       key,
       params,
     });
-    ctx.body = "ok";
+    ctx.body = 'ok';
   } catch (err) {
-    logger.error(
-      `[错误][TRADE][ORDER] ${err.message} > ${JSON.stringify(ctx.request.body)}`,
-    );
+    logger.error(`[错误][TRADE][ORDER] ${err.message} > ${JSON.stringify(ctx.request.body)}`);
     logger.error(err);
     ctx.status = 500;
     ctx.body = err.message;
