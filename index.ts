@@ -1,5 +1,6 @@
 import log from '@/utils/logger';
+import app from '@/routes';
 
-if (Bun.env.NODE_ENV === 'development') {
-  log.info('开发环境');
-}
+app.listen(Bun.env.PORT || 3000, () => {
+  log.info(`🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`);
+});
