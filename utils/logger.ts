@@ -1,8 +1,6 @@
 import winston, { transports, format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, colorize } = winston.format;
-
 const levels = {
   error: 0,
   warn: 1,
