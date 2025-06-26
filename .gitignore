@@ -135,3 +135,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 bun.lock
+data/
+mydb.sqlite
+*.sqlite
+data/mydb.sqlite
