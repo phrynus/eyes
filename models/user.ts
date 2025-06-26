@@ -1,6 +1,7 @@
 import { db } from './db';
 import { CryptoUtil } from '../utils/crypto';
 
+<<<<<<< HEAD
 /**
  * 用户接口定义
  * 包含用户的所有字段，包括敏感信息
@@ -24,18 +25,33 @@ export interface User {
  * 安全的用户接口定义
  * 用于向客户端返回用户信息，不包含敏感字段
  */
+=======
+export interface User {
+  id?: number;
+  username: string;
+  password: string;
+  password_salt?: string;
+  email?: string;
+  created_at?: string;
+}
+
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
 export interface SafeUser {
   id: number;
   username: string;
   email?: string;
+<<<<<<< HEAD
   nickname?: string;
   avatar?: string;
   status?: number;
   last_login_at?: string;
+=======
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   created_at?: string;
   [key: string]: string | number | undefined;
 }
 
+<<<<<<< HEAD
 /**
  * 用户模型类
  * 处理用户相关的所有数据库操作
@@ -46,11 +62,15 @@ export class UserModel {
    * @param user - 用户信息
    * @returns 新创建的用户ID
    */
+=======
+export class UserModel {
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   static async create(user: User): Promise<number> {
     try {
       const salt = CryptoUtil.generateSalt();
       const hashedPassword = CryptoUtil.hashPassword(user.password, salt);
 
+<<<<<<< HEAD
       const stmt = db.prepare(`
         INSERT INTO users (
           username, password, password_salt, email, 
@@ -60,12 +80,19 @@ export class UserModel {
 
       const result = stmt.run(user.username, hashedPassword, salt, user.email || null, user.nickname || null, user.avatar || null, user.status || 1);
 
+=======
+      const stmt = db.prepare(
+        'INSERT INTO users (username, password, password_salt, email) VALUES (?, ?, ?, ?)'
+      );
+      const result = stmt.run(user.username, hashedPassword, salt, user.email || null);
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
       return Number(result.lastInsertRowid);
     } catch (error: any) {
       throw new Error(`创建用户失败: ${error.message}`);
     }
   }
 
+<<<<<<< HEAD
   /**
    * 根据用户名查找用户
    * 只返回状态正常的用户
@@ -75,11 +102,17 @@ export class UserModel {
   static async findByUsername(username: string): Promise<User | null> {
     try {
       return db.prepare('SELECT * FROM users WHERE username = ? AND status = 1').get(username) as User | null;
+=======
+  static async findByUsername(username: string): Promise<User | null> {
+    try {
+      return db.prepare('SELECT * FROM users WHERE username = ?').get(username) as User | null;
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     } catch (error: any) {
       throw new Error(`查找用户失败: ${error.message}`);
     }
   }
 
+<<<<<<< HEAD
   /**
    * 根据邮箱查找用户
    * 只返回状态正常的用户
@@ -89,11 +122,17 @@ export class UserModel {
   static async findByEmail(email: string): Promise<User | null> {
     try {
       return db.prepare('SELECT * FROM users WHERE email = ? AND status = 1').get(email) as User | null;
+=======
+  static async findByEmail(email: string): Promise<User | null> {
+    try {
+      return db.prepare('SELECT * FROM users WHERE email = ?').get(email) as User | null;
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     } catch (error: any) {
       throw new Error(`查找用户失败: ${error.message}`);
     }
   }
 
+<<<<<<< HEAD
   /**
    * 根据ID查找用户
    * 只返回状态正常的用户
@@ -103,11 +142,17 @@ export class UserModel {
   static async findById(id: number): Promise<User | null> {
     try {
       return db.prepare('SELECT * FROM users WHERE id = ? AND status = 1').get(id) as User | null;
+=======
+  static async findById(id: number): Promise<User | null> {
+    try {
+      return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | null;
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     } catch (error: any) {
       throw new Error(`查找用户失败: ${error.message}`);
     }
   }
 
+<<<<<<< HEAD
   /**
    * 更新用户登录信息
    * @param id - 用户ID
@@ -168,11 +213,14 @@ export class UserModel {
    * @param password - 待验证的密码
    * @returns 密码是否正确
    */
+=======
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   static async verifyPassword(user: User, password: string): Promise<boolean> {
     if (!user.password_salt) return false;
     return CryptoUtil.verifyPassword(password, user.password_salt, user.password);
   }
 
+<<<<<<< HEAD
   /**
    * 修改用户密码
    * @param id - 用户ID
@@ -212,11 +260,14 @@ export class UserModel {
    * @param user - 原始用户对象
    * @returns 安全的用户对象
    */
+=======
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   static toSafeUser(user: User): SafeUser {
     return {
       id: user.id!,
       username: user.username,
       email: user.email,
+<<<<<<< HEAD
       nickname: user.nickname,
       avatar: user.avatar,
       status: user.status,
@@ -225,3 +276,9 @@ export class UserModel {
     };
   }
 }
+=======
+      created_at: user.created_at
+    };
+  }
+} 
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f

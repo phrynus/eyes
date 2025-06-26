@@ -1,9 +1,14 @@
 import { Elysia, t } from 'elysia';
 import { UserModel } from '../models/user';
+<<<<<<< HEAD
 import { RefreshTokenModel } from '../models/refresh-token';
 import type { User, SafeUser } from '../models/user';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { authConfig } from '../config/auth.config';
+=======
+import type { User, SafeUser } from '../models/user';
+import { authMiddleware } from '../middleware/auth.middleware';
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
 
 type AuthContext = {
   signAccessToken: (payload: any) => Promise<string>;
@@ -57,13 +62,21 @@ export const auth = new Elysia({ prefix: '/auth' })
       body: t.Object({
         username: t.String(),
         password: t.String(),
+<<<<<<< HEAD
         email: t.Optional(t.String()),
         nickname: t.Optional(t.String())
+=======
+        email: t.Optional(t.String())
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
       })
     }
   )
   .post('/login', 
+<<<<<<< HEAD
     async ({ body, request, ...ctx }) => {
+=======
+    async ({ body, ...ctx }) => {
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
       const { username, password } = body as User;
       const { signAccessToken, signRefreshToken } = ctx as unknown as AuthContext;
       
@@ -85,6 +98,7 @@ export const auth = new Elysia({ prefix: '/auth' })
         };
       }
 
+<<<<<<< HEAD
       // 更新登录信息
       await UserModel.updateLoginInfo(user.id!, request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '');
 
@@ -100,6 +114,12 @@ export const auth = new Elysia({ prefix: '/auth' })
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // 7天后过期
       await RefreshTokenModel.create(user.id!, refreshToken, expiresAt);
+=======
+      // 生成 token
+      const safeUser = UserModel.toSafeUser(user);
+      const accessToken = await signAccessToken(safeUser);
+      const refreshToken = await signRefreshToken({ id: user.id });
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
 
       return {
         success: true,
@@ -136,6 +156,7 @@ export const auth = new Elysia({ prefix: '/auth' })
         };
       }
 
+<<<<<<< HEAD
       try {
         // 验证刷新令牌
         const payload = await verifyRefreshToken(refreshToken);
@@ -180,6 +201,34 @@ export const auth = new Elysia({ prefix: '/auth' })
           message: error.message
         };
       }
+=======
+      const payload = await verifyRefreshToken(refreshToken);
+      
+      if (!payload || !payload.id) {
+        return {
+          success: false,
+          message: '刷新令牌无效或已过期'
+        };
+      }
+
+      // 查找用户
+      const user = await UserModel.findById(payload.id);
+      if (!user) {
+        return {
+          success: false,
+          message: '用户不存在'
+        };
+      }
+
+      // 生成新的访问令牌
+      const safeUser = UserModel.toSafeUser(user);
+      const accessToken = await signAccessToken(safeUser);
+
+      return {
+        success: true,
+        accessToken
+      };
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     }
   )
   // 获取当前用户信息
@@ -202,6 +251,7 @@ export const auth = new Elysia({ prefix: '/auth' })
         };
       }
 
+<<<<<<< HEAD
       try {
         const payload = await verifyAccessToken(token);
         if (!payload || !payload.id) {
@@ -363,5 +413,20 @@ export const auth = new Elysia({ prefix: '/auth' })
           message: error.message
         };
       }
+=======
+      const payload = await verifyAccessToken(token);
+      
+      if (!payload) {
+        return {
+          success: false,
+          message: 'token无效或已过期'
+        };
+      }
+
+      return {
+        success: true,
+        user: payload
+      };
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     }
   ); 

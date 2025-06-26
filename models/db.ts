@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Database } from 'bun:sqlite';
 
 /**
@@ -21,6 +22,13 @@ const db = new Database('data/mydb.sqlite');
  * - created_at: 创建时间
  * - updated_at: 更新时间
  */
+=======
+import { Database } from "bun:sqlite";
+
+const db = new Database("data/mydb.sqlite");
+
+// 创建用户表
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +36,7 @@ db.run(`
     password TEXT NOT NULL,
     password_salt TEXT NOT NULL,
     email TEXT UNIQUE,
+<<<<<<< HEAD
     nickname TEXT,
     avatar TEXT,
     status INTEGER DEFAULT 1,
@@ -74,3 +83,10 @@ db.run('CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(
 db.run('CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token)');
 
 export { db };
+=======
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+export { db }; 
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f

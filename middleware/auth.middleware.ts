@@ -2,6 +2,7 @@ import { Elysia } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
 import { authConfig } from '../config/auth.config';
 
+<<<<<<< HEAD
 /**
  * 认证中间件
  * 提供JWT令牌的签发和验证功能
@@ -12,6 +13,9 @@ import { authConfig } from '../config/auth.config';
  */
 export const authMiddleware = new Elysia()
   // 配置访问令牌
+=======
+export const authMiddleware = new Elysia()
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   .use(
     jwt({
       name: 'accessJwt',
@@ -19,7 +23,10 @@ export const authMiddleware = new Elysia()
       exp: authConfig.jwt.accessToken.expires
     })
   )
+<<<<<<< HEAD
   // 配置刷新令牌
+=======
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
   .use(
     jwt({
       name: 'refreshJwt',
@@ -27,6 +34,7 @@ export const authMiddleware = new Elysia()
       exp: authConfig.jwt.refreshToken.expires
     })
   )
+<<<<<<< HEAD
   // 提供JWT操作方法
   .derive(({ accessJwt, refreshJwt }) => ({
     /**
@@ -58,6 +66,22 @@ export const authMiddleware = new Elysia()
      * @param token - 刷新令牌
      * @returns 令牌载荷或null
      */
+=======
+  .derive(({ accessJwt, refreshJwt }) => ({
+    // 生成访问令牌
+    signAccessToken: async (payload: any) => {
+      return await accessJwt.sign(payload);
+    },
+    // 验证访问令牌
+    verifyAccessToken: async (token: string) => {
+      return await accessJwt.verify(token);
+    },
+    // 生成刷新令牌
+    signRefreshToken: async (payload: any) => {
+      return await refreshJwt.sign(payload);
+    },
+    // 验证刷新令牌
+>>>>>>> 0fd4890d18a1b5b168750f29792b8d2d2db3385f
     verifyRefreshToken: async (token: string) => {
       return await refreshJwt.verify(token);
     }
