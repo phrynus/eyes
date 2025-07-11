@@ -18,10 +18,9 @@
 
 - 用户密码加密存储
 - 实现基于 RBAC (基于角色的访问控制) 的权限系统
+- 一个用户可能有多个角色
+- 用户可以单独额外赋予权限
 - 权限格式采用 `resource:target:action` 标准化结构
-- 权限时效性控制：
-  - 每个权限设置有效期
-  - 到期后自动撤销权限
 
 ### 2. 认证体系
 
@@ -42,3 +41,25 @@
 
 - 仅处理消息的接收和发送
 - 不包含业务逻辑处理
+
+### 5. 返回数据框架
+
+```json
+{
+    "avatar": "https://avatars.githubusercontent.com/u/59019395",
+    "username": "admin",
+    "nickname": "清欢",
+    "roles": [
+        "expires"
+    ],
+    "permissions": [
+        "resource:target:action"
+    ],
+    "extraPermissions": [
+        "resource:target:action"
+    ],
+    "accessToken": "eyJhbGciOiJIUzUxMiJ9.admin",
+    "refreshToken": "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+    "expires": "2030/10/30 00:00:00"
+}
+```
