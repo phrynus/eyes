@@ -1,33 +1,44 @@
-# eyes
-```
-eyes/
-├── index                  # 应用入口文件
-├── config/                # 配置文件
-│   ├── index.js           # 配置聚合
-│   ├── database.js        # 数据库配置
-│   └── env.js             # 环境变量配置
-├── routes/                # 路由定义
-│   ├── api/               # API路由
-│   │   ├── user.routes.js
-│   │   └── product.routes.js
-├── controllers/           # 控制器
-│   ├── user.controller.js
-│   └── product.controller.js
-├── models/                # 数据模型
-│   ├── user.model.js
-│   └── product.model.js
-├── middlewares/           # 自定义中间件
-│   ├── auth.js            # 认证中间件
-│   └── errorHandler.js    # 错误处理中间件
-├── services/              # 业务逻辑层
-│   ├── user.service.js
-│   └── product.service.js
-├── utils/                 # 工具函数
-│   ├── logger.js          # 日志工具
-│   └── helpers.js         # 辅助函数
-└── test/                  # 测试文件
-    ├── unit/              # 单元测试
-    └── integration/       # 集成测试
-```
+# 后端用户管理系统技术方案
 
-1
+## 技术栈
+
+- **运行时**: Bun
+- **框架**: ElysiaJS
+- **数据库**: SQLite (通过 `bun:sqlite`)
+- **Web 服务器**: Bun.serve (支持 WebSocket)
+- **加密**: Argon2
+- **核心中间件**:
+  - `@elysiajs/cors` - 处理跨域请求
+  - `@elysiajs/jwt` - JWT 认证
+  - `@elysiajs/swagger` - API 文档生成
+
+## 核心功能需求
+
+### 1. 用户与权限管理
+
+- 用户密码加密存储
+- 实现基于 RBAC (基于角色的访问控制) 的权限系统
+- 权限格式采用 `resource:target:action` 标准化结构
+- 权限时效性控制：
+  - 每个权限设置有效期
+  - 到期后自动撤销权限
+
+### 2. 认证体系
+
+- 实现单点登录 (SSO) 功能
+- Token自动刷新机制
+- 第三方接入鉴权由外部系统负责
+- 本系统仅负责权限管理
+
+### 3. API 分层设计
+
+- **用户 API**:
+  - 面向终端客户的功能接口
+- **管理员 API**:
+  - 为系统前端管理面板提供接口
+  - 包含用户管理、权限分配等功能
+
+### 4. WebSocket 功能
+
+- 仅处理消息的接收和发送
+- 不包含业务逻辑处理
