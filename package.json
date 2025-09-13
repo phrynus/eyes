@@ -3,11 +3,16 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run dist/index.js"
+    "start": "bun run dist/index.js",
+    "setup": "bun run src/setup.ts",
+    "init-db": "bun run src/init-db.ts"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
     "@elysiajs/jwt": "^1.3.3",
-    "@elysiajs/swagger": "^1.3.1",
+    "@elysiajs/openapi": "^1.4.0",
+    "@elysiajs/server-timing": "^1.4.0",
+    "@elysiajs/static": "^1.4.0",
     "elysia": "latest",
     "otplib": "^12.0.1"
   },
