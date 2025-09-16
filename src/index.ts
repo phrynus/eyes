@@ -10,19 +10,19 @@ import { passwordUtils } from '@/utils/password.utils';
 // 测试数据库连接
 await testConnection();
 
-// 启动服务
-// app.listen((process.env.PORT as string) || 3000, () => {
-//   console.log(`服务器已启动，手册：http://localhost:${app.server?.port}/openapi`);
-// });
+// 启动服务;
+app.listen((process.env.PORT as string) || 3000, () => {
+  console.log(`服务器已启动，手册：http://localhost:${app.server?.port}/openapi`);
+});
 
 // let user = new Users();
 let applications = new Applications();
 
 // console.log(await applications.create({ app_name: '测试应用' }));
 
-console.log(await applications.getAllApplications());
+// console.log(await applications.getAllApplications());
 
-console.log(await applications.getApplicationById('01994c94-1d3c-7000-bb69-53b78960d799'));
+// console.log(await applications.getApplicationById('01994c94-1d3c-7000-bb69-53b78960d799'));
 
 // let dbb = await user.create({ username: 'admin21', password: '123456Ab.' }).catch((err) => {
 //   return err;
