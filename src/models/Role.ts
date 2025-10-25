@@ -1,4 +1,4 @@
-import { db } from '@/config/database';
+import { mysql } from '~/config/mysql';
 
 // -- 角色表：存储应用内的角色信息
 // CREATE TABLE roles (

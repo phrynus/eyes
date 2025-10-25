@@ -1,4 +1,4 @@
-import { db } from '@/config/database';
+import { mysql } from '~/config/mysql';
 
 // -- 权限表：存储应用中的权限定义
 // CREATE TABLE permissions (

@@ -3,9 +3,7 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run dist/index.js",
-    "setup": "bun run src/setup.ts",
-    "init-db": "bun run src/init-db.ts"
+    "start": "bun run src/index.js"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

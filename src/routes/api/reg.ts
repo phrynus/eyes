@@ -2,9 +2,7 @@ import { Elysia, t } from 'elysia';
 import { regexPatterns } from '@/config';
 import { success, err } from '@/utils/response.utils';
 
-export default new Elysia({
-  prefix: '/reg',
-}).post('/', async ({ body }) => {
+export default new Elysia({ prefix: '/reg' }).post('/', async ({ body }) => {
   try {
     const { username, password } = body as { username: string; password: string };
 

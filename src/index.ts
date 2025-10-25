@@ -1,22 +1,24 @@
-import { testConnection } from '@/config/database';
 import { app } from '@/routes';
-import { randomUUIDv7 } from 'bun';
-
 import { Applications } from '~/models/Application';
-import { Users } from '~/models/User';
 
-import { passwordUtils } from '@/utils/password.utils';
+import { sqlite } from '@/config/sqlite';
 
-// 测试数据库连接
-await testConnection();
+// sqlite.init(); // 初始化数据库
 
 // 启动服务;
 app.listen((process.env.PORT as string) || 3000, () => {
   console.log(`服务器已启动，手册：http://localhost:${app.server?.port}/openapi`);
 });
 
+// let s = await sqlite.set({
+//   key: 'app_name',
+//   value: '测试应用',
+//   expire: '1d',
+// });
+// console.log(s);
+
 // let user = new Users();
-let applications = new Applications();
+// let applications = new Applications();
 
 // console.log(await applications.create({ app_name: '测试应用' }));
 

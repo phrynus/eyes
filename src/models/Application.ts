@@ -1,4 +1,4 @@
-import { db } from '@/config/database';
+import { mysql } from '~/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
 
 // -- 应用表：存储所有应用信息
@@ -44,7 +44,7 @@ export class Applications {
       // appData.app_name = appData.app_name || randomUUIDv7('base64url');
       // appData.description = appData.description || `名称：${appData.app_name}，ID：${appData.app_code}`;
       // appData.icon_url = appData.icon_url || `https://api.dicebear.com/6.x/initials/svg?seed=${appData.app_name}`;
-      await db`
+      await mysql`
       INSERT INTO applications ${sql(appData)}
       `;
       return appData;
@@ -56,7 +56,7 @@ export class Applications {
   // 获取所有应用
   async getAllApplications() {
     try {
-      const applications = await db`
+      const applications = await mysql`
       SELECT * FROM applications
       `;
       return applications;
@@ -67,7 +67,7 @@ export class Applications {
   // 获取单个应用通过 ID 或者 app_code
   async getApplicationById(id: number | string) {
     try {
-      const [application] = await db`
+      const [application] = await mysql`
       SELECT * FROM applications WHERE id = ${id} OR app_code = ${id}
       `;
       return application;

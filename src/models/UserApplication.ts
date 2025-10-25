@@ -1,4 +1,4 @@
-import { db } from '@/config/database';
+import { mysql } from '~/config/mysql';
 
 // -- 用户-应用关联表：记录用户与应用的关系
 // CREATE TABLE user_applications (

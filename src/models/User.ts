@@ -1,4 +1,4 @@
-import { db } from '@/config/database';
+import { mysql } from '~/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
 import { passwordUtils } from '@/utils/password.utils';
 import { regexPatterns } from '@/config';
