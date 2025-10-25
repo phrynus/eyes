@@ -6,7 +6,7 @@ import { db } from '@/config/database';
 //     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '权限ID',
 //     -- 应用ID，关联applications表，非空，权限属于哪个应用
 //     app_id BIGINT UNSIGNED NOT NULL COMMENT '应用ID',
-//     -- 权限编码，最长100字符，非空，格式为resource:target:action 
+//     -- 权限编码，最长100字符，非空，格式为resource:target:action
 //     permission_code VARCHAR(100) NOT NULL COMMENT '权限编码，格式为resource:target:action',
 //     -- 权限名称，最长200字符，非空
 //     permission_name VARCHAR(200) NOT NULL COMMENT '权限名称',
@@ -38,3 +38,18 @@ export type TypePermission = {
   created_at?: Date;
   updated_at?: Date;
 };
+
+export class Permissions {
+  // 创建权限
+  async create(permissionData: TypePermission) {}
+  // 获取权限列表
+  async getAllPermissions() {}
+  // 获取单个权限
+  async getPermissionById(id: number | string) {}
+  // 更新权限
+  async updatePermission(id: number | string, permissionData: TypePermission) {}
+  // 删除权限
+  async deletePermission(id: number | string) {}
+}
+
+export default { Permissions };

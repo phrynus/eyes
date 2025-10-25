@@ -44,3 +44,14 @@ export type TypeUserRole = {
   created_at?: Date;
   updated_at?: Date;
 };
+
+export class UserRoles {
+  // 创建用户-角色关联
+  async create(userRoleData: TypeUserRole) {}
+  // 删除用户-角色关联
+  async deleteUserRole(id: number | string) {}
+  // 更新用户-角色关联
+  async updateUserRole(id: number | string, userRoleData: TypeUserRole) {}
+  // 获取用户-角色关联通过用户ID
+  async getUserRolesByUserId(userId: number | string) {}
+}

@@ -31,3 +31,13 @@ export type TypeRolePermission = {
   created_at?: Date;
   updated_at?: Date;
 };
+export class RolePermissions {
+  // 创建角色权限关联
+  async create(rolePermissionData: TypeRolePermission) {}
+  // 删除角色权限关联
+  async deleteRolePermission(id: number | string) {}
+  // 更新角色权限关联
+  async updateRolePermission(id: number | string, rolePermissionData: TypeRolePermission) {}
+  // 获取角色权限关联通过角色ID
+  async getRolePermissionsByRoleId(roleId: number | string) {}
+}

@@ -44,3 +44,15 @@ export type TypeUserPermission = {
   created_at?: Date;
   updated_at?: Date;
 };
+
+export class UserPermissions {
+  // 创建用户权限关联
+  async create(userPermissionData: TypeUserPermission) {}
+  // 删除用户权限关联
+  async deleteUserPermission(id: number | string) {}
+  // 更新用户权限关联
+  async updateUserPermission(id: number | string, userPermissionData: TypeUserPermission) {}
+  // 获取用户权限关联通过用户ID
+  async getUserPermissionsByUserId(userId: number | string) {}
+}
+export default { UserPermissions };

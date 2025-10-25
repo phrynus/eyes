@@ -56,57 +56,14 @@ export type TypeUsers = {
 
 export class Users {
   // 创建用户
-  async create(userData: TypeUsers) {
-    try {
-      // if (userData.username) {
-      //   if (!regexPatterns.usernameRegex.test(userData.username)) {
-      //     throw new Error('Invalid username');
-      //   }
-      // } else {
-      //   throw new Error('Invalid username');
-      // }
-
-      // if (userData.password) {
-      //   if (!regexPatterns.passwordRegex1.test(userData.password)) {
-      //     throw new Error('Invalid password');
-      //   }
-      //   userData.password_hash = await passwordUtils.hash(userData.password);
-      //   delete userData.password;
-      // } else {
-      //   throw new Error('Invalid password');
-      // }
-
-      // if (userData.nickname) {
-      //   if (!regexPatterns.nicknameRegex.test(userData.nickname)) {
-      //     throw new Error('Invalid nickname');
-      //   }
-      // } else {
-      //   userData.nickname = userData.username;
-      // }
-
-      // if (userData.email) {
-      //   if (!regexPatterns.emailRegex.test(userData.email)) {
-      //     throw new Error('Invalid email');
-      //   }
-      // }
-
-      // userData.uuid = randomUUIDv7();
-      // userData.avatar_url = userData.avatar_url || `https://api.dicebear.com/6.x/initials/svg?seed=${userData.uuid}`;
-
-      // const totp = new OTPAuth.TOTP({
-      //   issuer: 'EYES', // 签发者
-      //   label: userData.username, // 用户名
-      //   algorithm: 'SHA1', // 算法
-      // });
-      // userData.totp_secret = totp.secret.base32;
-      // userData.json_data = JSON.stringify(userData.json_data || {});
-
-      await db`
-      INSERT INTO users ${sql(userData)}
-      `;
-      return userData;
-    } catch (error) {
-      throw error;
-    }
-  }
+  async create(userData: TypeUsers) {}
+  // 删除用户
+  async deleteUser(id: number | string) {}
+  // 获取所有用户
+  async getAllUsers() {}
+  // 获取单个用户
+  async getUserById(id: number | string) {}
+  // 更新用户信息
+  async updateUser(id: number | string, userData: TypeUsers) {}
 }
+export default { Users };

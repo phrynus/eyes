@@ -36,3 +36,20 @@ export type TypeRole = {
   created_at?: Date;
   updated_at?: Date;
 };
+
+export class Roles {
+  // 创建角色
+  async create(roleData: TypeRole) {}
+  // 删除角色
+  async deleteRole(id: number | string) {}
+  // 更新角色
+  async updateRole(id: number | string, roleData: TypeRole) {}
+
+  // 获取所有角色
+  async getAllRoles() {}
+  // 获取单个角色
+  async getRoleById(id: number | string) {}
+  // 获取应用下的所有角色
+  async getRolesByAppId(appId: number | string) {}
+}
+export default { Roles };

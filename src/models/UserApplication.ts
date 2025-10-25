@@ -34,3 +34,14 @@ export type TypeUserApplication = {
   created_at?: Date;
   updated_at?: Date;
 };
+export class UserApplications {
+  // 创建用户-应用关联
+  async create(userApplicationData: TypeUserApplication) {}
+  // 删除用户-应用关联
+  async deleteUserApplication(id: number | string) {}
+  // 更新用户-应用关联
+  async updateUserApplication(id: number | string, userApplicationData: TypeUserApplication) {}
+  // 获取用户-应用关联通过用户ID
+  async getUserApplicationsByUserId(userId: number | string) {}
+}
+export default { UserApplications };
