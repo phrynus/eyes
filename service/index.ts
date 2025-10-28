@@ -1,7 +1,7 @@
-import { app } from '@/routes';
+import { app } from '~/routes';
 import { Applications } from '~/models/Application';
 
-import { sqlite } from '@/config/sqlite';
+import { sqlite } from '~/config/sqlite';
 
 // sqlite.init(); // 初始化数据库
 

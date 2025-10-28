@@ -6,7 +6,7 @@ import { serverTiming } from '@elysiajs/server-timing';
 
 //
 import apiRoutes from './api';
-import { errorHandler } from '@/middlewares/error-handler.middleware';
+import { errorHandler } from '~/middlewares/error-handler.middleware';
 //
 
 export const app = new Elysia()
@@ -14,9 +14,20 @@ export const app = new Elysia()
   .use(openapi()) // 添加OpenAPI支持
   .use(cors()) // 添加CORS支持
   .use(serverTiming()) // 添加计时支持
+  // .use(
+  //   staticPlugin({
+  //     assets: './public',
+  //     prefix: '/public',
+  //     headers: {
+  //       'Cache-Control': 'max-age=31536000', // 缓存一年
+  //     },
+  //   })
+  // )
   .use(
     staticPlugin({
-      assets: './public',
+      assets: './web/dist',
+      prefix: '/',
+      indexHTML: true,
       headers: {
         'Cache-Control': 'max-age=31536000', // 缓存一年
       },

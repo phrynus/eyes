@@ -1,4 +1,4 @@
-import { mysql } from '~/config/mysql';
+import { mysql } from '~~/service/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
 
 // -- 应用表：存储所有应用信息

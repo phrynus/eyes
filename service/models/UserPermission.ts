@@ -1,4 +1,4 @@
-import { mysql } from '~/config/mysql';
+import { mysql } from '~~/service/config/mysql';
 
 // -- 用户-权限关联表：记录用户的直接权限（不通过角色）
 // CREATE TABLE user_permissions (

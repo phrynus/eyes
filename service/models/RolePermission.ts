@@ -1,4 +1,4 @@
-import { mysql } from '~/config/mysql';
+import { mysql } from '~~/service/config/mysql';
 
 // -- 角色-权限关联表：记录角色拥有的权限
 // CREATE TABLE role_permissions (

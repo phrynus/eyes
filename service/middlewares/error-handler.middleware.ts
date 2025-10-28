@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import { ResponseCode } from '@/utils/response.utils';
+import { ResponseCode } from '~~/service/utils/response.utils';
 
 /**
  * 全局错误处理中间件

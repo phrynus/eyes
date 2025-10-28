@@ -2,10 +2,8 @@
   "compilerOptions": {
     // 路径索引
     "paths": {
-      "~/*": ["./src/*"],
-      "~~/*": ["./*"],
-      "@/*": ["./src/*"],
-      "@@/*": ["./*"]
+      "~/*": ["./service/*"],
+      "@/*": ["./service/*"]
     },
     /* Visit https://aka.ms/tsconfig to read more about this file */
     /* Projects */

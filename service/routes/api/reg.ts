@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
-import { regexPatterns } from '@/config';
-import { success, err } from '@/utils/response.utils';
+import { regexPatterns } from '~/config';
+import { success, err } from '~/utils/response.utils';
 
 export default new Elysia({ prefix: '/reg' }).post('/', async ({ body }) => {
   try {

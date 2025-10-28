@@ -1,7 +1,7 @@
-import { mysql } from '~/config/mysql';
+import { mysql } from '~~/service/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
-import { passwordUtils } from '@/utils/password.utils';
-import { regexPatterns } from '@/config';
+import { passwordUtils } from '~~/service/utils/password.utils';
+import { regexPatterns } from '~~/service/config';
 import * as OTPAuth from 'otpauth';
 
 // -- 用户表：存储系统用户基本信息
