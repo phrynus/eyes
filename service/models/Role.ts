@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 角色表：存储应用内的角色信息
 // CREATE TABLE roles (
@@ -39,17 +40,95 @@ export type TypeRole = {
 
 export class Roles {
   // 创建角色
-  async create(roleData: TypeRole) {}
+  async create(roleData: TypeRole) {
+    try {
+      await mysql`
+        INSERT INTO roles ${sql(roleData)}
+      `;
+      return roleData;
+    } catch (error) {
+      console.error('Error creating role:', error);
+      throw error;
+    }
+  }
+
   // 删除角色
-  async deleteRole(id: number | string) {}
+  async deleteRole(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM roles WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      return false;
+    }
+  }
+
   // 更新角色
-  async updateRole(id: number | string, roleData: TypeRole) {}
+  async updateRole(id: number | string, roleData: TypeRole) {
+    try {
+      const { id: _, created_at: __, ...updateData } = roleData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE roles 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating role:', error);
+      return false;
+    }
+  }
 
   // 获取所有角色
-  async getAllRoles() {}
+  async getAllRoles() {
+    try {
+      const roles = await mysql`
+        SELECT r.*, a.app_name, a.app_code
+        FROM roles r
+        LEFT JOIN applications a ON r.app_id = a.id
+      `;
+      return roles;
+    } catch (error) {
+      console.error('Error getting all roles:', error);
+      return [];
+    }
+  }
+
   // 获取单个角色
-  async getRoleById(id: number | string) {}
+  async getRoleById(id: number | string) {
+    try {
+      const [role] = await mysql`
+        SELECT r.*, a.app_name, a.app_code
+        FROM roles r
+        LEFT JOIN applications a ON r.app_id = a.id
+        WHERE r.id = ${id}
+      `;
+      return role || null;
+    } catch (error) {
+      console.error('Error getting role by id:', error);
+      return null;
+    }
+  }
+
   // 获取应用下的所有角色
-  async getRolesByAppId(appId: number | string) {}
+  async getRolesByAppId(appId: number | string) {
+    try {
+      const roles = await mysql`
+        SELECT * FROM roles 
+        WHERE app_id = ${appId}
+      `;
+      return roles;
+    } catch (error) {
+      console.error('Error getting roles by app id:', error);
+      return [];
+    }
+  }
 }
 export default { Roles };

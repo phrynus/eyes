@@ -3,7 +3,8 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "bun run --watch service/index.ts",
-    "start": "bun run service/index.js"
+    "start": "bun run service/index.js",
+    "init:admin": "bun run service/scripts/init-admin.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

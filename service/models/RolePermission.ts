@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 角色-权限关联表：记录角色拥有的权限
 // CREATE TABLE role_permissions (
@@ -33,11 +34,79 @@ export type TypeRolePermission = {
 };
 export class RolePermissions {
   // 创建角色权限关联
-  async create(rolePermissionData: TypeRolePermission) {}
+  async create(rolePermissionData: TypeRolePermission) {
+    try {
+      await mysql`
+        INSERT INTO role_permissions ${sql(rolePermissionData)}
+      `;
+      return rolePermissionData;
+    } catch (error) {
+      console.error('Error creating role permission:', error);
+      throw error;
+    }
+  }
+
   // 删除角色权限关联
-  async deleteRolePermission(id: number | string) {}
+  async deleteRolePermission(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM role_permissions WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting role permission:', error);
+      return false;
+    }
+  }
+
+  // 删除角色的特定权限
+  async deleteRolePermissionByRoleAndPermission(roleId: number | string, permissionId: number | string) {
+    try {
+      await mysql`
+        DELETE FROM role_permissions 
+        WHERE role_id = ${roleId} AND permission_id = ${permissionId}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting role permission by role and permission:', error);
+      return false;
+    }
+  }
+
   // 更新角色权限关联
-  async updateRolePermission(id: number | string, rolePermissionData: TypeRolePermission) {}
+  async updateRolePermission(id: number | string, rolePermissionData: TypeRolePermission) {
+    try {
+      const { id: _, created_at: __, ...updateData } = rolePermissionData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE role_permissions 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating role permission:', error);
+      return false;
+    }
+  }
+
   // 获取角色权限关联通过角色ID
-  async getRolePermissionsByRoleId(roleId: number | string) {}
+  async getRolePermissionsByRoleId(roleId: number | string) {
+    try {
+      const rolePermissions = await mysql`
+        SELECT rp.*, p.permission_name, p.permission_code, p.description
+        FROM role_permissions rp
+        LEFT JOIN permissions p ON rp.permission_id = p.id
+        WHERE rp.role_id = ${roleId}
+      `;
+      return rolePermissions;
+    } catch (error) {
+      console.error('Error getting role permissions by role id:', error);
+      return [];
+    }
+  }
 }

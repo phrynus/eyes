@@ -1,7 +1,7 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
-import { passwordUtils } from '~~/service/utils/password.utils';
-import { regexPatterns } from '~~/service/config';
+import { passwordUtils } from '~/utils/password.utils';
+import { regexPatterns } from '~/config';
 import * as OTPAuth from 'otpauth';
 
 // -- 用户表：存储系统用户基本信息
@@ -9,7 +9,7 @@ import * as OTPAuth from 'otpauth';
 //     -- 用户ID，无符号大整数，自增，非空
 //     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
 //     -- UUID, 32位长度，非空，唯一
-//     uuid VARCHAR(32) NOT NULL COMMENT 'UUID',
+//     uuid VARCHAR(36) NOT NULL COMMENT 'UUID',
 //     -- 用户名，最长50字符，非空，唯一
 //     username VARCHAR(50) NOT NULL COMMENT '用户名',
 //     -- 密码哈希，最长255字符，非空（存储加密后的密码）
@@ -56,14 +56,185 @@ export type TypeUsers = {
 
 export class Users {
   // 创建用户
-  async create(userData: TypeUsers) {}
+  async create(userData: TypeUsers) {
+    try {
+      // 验证用户名格式
+      if (userData.username && !regexPatterns.usernameRegex.test(userData.username)) {
+        throw new Error('用户名格式不正确');
+      }
+      // 验证邮箱格式
+      if (userData.email && !regexPatterns.emailRegex.test(userData.email)) {
+        throw new Error('邮箱格式不正确');
+      }
+      // 验证密码格式（如果有密码）
+      if (userData.password_hash && !regexPatterns.passwordRegex.test(userData.password_hash)) {
+        throw new Error('密码格式不正确');
+      }
+      // 如果提供了明文密码，需要先哈希
+      if (userData.password_hash) {
+        userData.password_hash = await passwordUtils.hash(userData.password_hash);
+      }
+      // 生成 UUID
+      userData.uuid = randomUUIDv7();
+
+      userData.avatar_url = userData.avatar_url || `https://api.dicebear.com/6.x/initials/svg?seed=${userData.uuid}`;
+
+      await mysql`
+        INSERT INTO users ${sql(userData)}
+      `;
+      return userData;
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
   // 删除用户
-  async deleteUser(id: number | string) {}
+  async deleteUser(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM users WHERE id = ${id} OR uuid = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+
   // 获取所有用户
-  async getAllUsers() {}
-  // 获取单个用户
-  async getUserById(id: number | string) {}
+  async getAllUsers() {
+    try {
+      const users = await mysql`
+        SELECT id, uuid, username, email, nickname, avatar_url, status, last_login_at, created_at, updated_at
+        FROM users
+      `;
+      return users;
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }
+
+  // 获取单个用户（通过ID或UUID）
+  async getUserById(id: number | string) {
+    try {
+      const [user] = await mysql`
+        SELECT id, uuid, totp_secret, username, email, nickname, avatar_url, json_data, status, last_login_at, created_at, updated_at
+        FROM users 
+        WHERE id = ${id} OR uuid = ${id}
+      `;
+      return user || null;
+    } catch (error) {
+      console.error('Error getting user by id:', error);
+      return null;
+    }
+  }
+  // 按用户名或邮箱查询用户
+  async getUserByUsernameOrEmail(usernameOrEmail: string) {
+    try {
+      const [user] = await mysql`
+        SELECT * FROM users WHERE username = ${usernameOrEmail} OR email = ${usernameOrEmail}
+      `;
+      return user || null;
+    } catch (error) {
+      console.error('Error getting user by username or email:', error);
+      return null;
+    }
+  }
+
+  // 按用户名查询用户
+  async getUserByUsername(username: string) {
+    try {
+      const [user] = await mysql`
+        SELECT * FROM users WHERE username = ${username}
+      `;
+      return user || null;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      return null;
+    }
+  }
+
+  // 按邮箱查询用户
+  async getUserByEmail(email: string) {
+    try {
+      const [user] = await mysql`
+        SELECT * FROM users WHERE email = ${email}
+      `;
+      return user || null;
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return null;
+    }
+  }
+
   // 更新用户信息
-  async updateUser(id: number | string, userData: TypeUsers) {}
+  async updateUser(id: number | string, userData: TypeUsers) {
+    try {
+      // 移除不应该被更新的字段
+      const { id: _, uuid: __, created_at: ___, ...updateData } = userData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE users 
+        SET ${sql(updateData)}
+        WHERE id = ${id} OR uuid = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return false;
+    }
+  }
+
+  // 更新最后登录时间
+  async updateLastLogin(id: number | string) {
+    try {
+      await mysql`
+        UPDATE users 
+        SET last_login_at = NOW()
+        WHERE id = ${id} OR uuid = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating last login:', error);
+      return false;
+    }
+  }
+
+  // 更新密码
+  async updatePassword(id: number | string, newPassword: string) {
+    try {
+      const passwordHash = await passwordUtils.hash(newPassword);
+      await mysql`
+        UPDATE users 
+        SET password_hash = ${passwordHash}
+        WHERE id = ${id} OR uuid = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating password:', error);
+      return false;
+    }
+  }
+
+  // 设置 TOTP 密钥
+  async setTotpSecret(id: number | string, totpSecret: string) {
+    try {
+      await mysql`
+        UPDATE users 
+        SET totp_secret = ${totpSecret}
+        WHERE id = ${id} OR uuid = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error setting TOTP secret:', error);
+      return false;
+    }
+  }
 }
 export default { Users };

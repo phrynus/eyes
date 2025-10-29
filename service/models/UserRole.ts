@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 用户-角色关联表：记录用户在某应用中拥有的角色
 // CREATE TABLE user_roles (
@@ -47,11 +48,98 @@ export type TypeUserRole = {
 
 export class UserRoles {
   // 创建用户-角色关联
-  async create(userRoleData: TypeUserRole) {}
+  async create(userRoleData: TypeUserRole) {
+    try {
+      await mysql`
+        INSERT INTO user_roles ${sql(userRoleData)}
+      `;
+      return userRoleData;
+    } catch (error) {
+      console.error('Error creating user role:', error);
+      throw error;
+    }
+  }
+
   // 删除用户-角色关联
-  async deleteUserRole(id: number | string) {}
+  async deleteUserRole(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_roles WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user role:', error);
+      return false;
+    }
+  }
+
+  // 删除用户在应用中的特定角色
+  async deleteUserRoleByUserAndRole(userId: number | string, roleId: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_roles 
+        WHERE user_id = ${userId} AND role_id = ${roleId}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user role by user and role:', error);
+      return false;
+    }
+  }
+
   // 更新用户-角色关联
-  async updateUserRole(id: number | string, userRoleData: TypeUserRole) {}
+  async updateUserRole(id: number | string, userRoleData: TypeUserRole) {
+    try {
+      const { id: _, created_at: __, ...updateData } = userRoleData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE user_roles 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return false;
+    }
+  }
+
   // 获取用户-角色关联通过用户ID
-  async getUserRolesByUserId(userId: number | string) {}
+  async getUserRolesByUserId(userId: number | string) {
+    try {
+      const userRoles = await mysql`
+        SELECT ur.*, r.role_name, r.role_code, a.app_name, a.app_code
+        FROM user_roles ur
+        LEFT JOIN roles r ON ur.role_id = r.id
+        LEFT JOIN applications a ON ur.app_id = a.id
+        WHERE ur.user_id = ${userId} AND ur.status = 1
+        AND (ur.expire_time IS NULL OR ur.expire_time > NOW())
+      `;
+      return userRoles;
+    } catch (error) {
+      console.error('Error getting user roles by user id:', error);
+      return [];
+    }
+  }
+
+  // 获取用户在指定应用中的角色
+  async getUserRolesByUserIdAndAppId(userId: number | string, appId: number | string) {
+    try {
+      const userRoles = await mysql`
+        SELECT ur.*, r.role_name, r.role_code
+        FROM user_roles ur
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE ur.user_id = ${userId} AND ur.app_id = ${appId} AND ur.status = 1
+        AND (ur.expire_time IS NULL OR ur.expire_time > NOW())
+      `;
+      return userRoles;
+    } catch (error) {
+      console.error('Error getting user roles by user id and app id:', error);
+      return [];
+    }
+  }
 }

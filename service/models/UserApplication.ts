@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 用户-应用关联表：记录用户与应用的关系
 // CREATE TABLE user_applications (
@@ -36,12 +37,80 @@ export type TypeUserApplication = {
 };
 export class UserApplications {
   // 创建用户-应用关联
-  async create(userApplicationData: TypeUserApplication) {}
+  async create(userApplicationData: TypeUserApplication) {
+    try {
+      await mysql`
+        INSERT INTO user_applications ${sql(userApplicationData)}
+      `;
+      return userApplicationData;
+    } catch (error) {
+      console.error('Error creating user application:', error);
+      throw error;
+    }
+  }
+
   // 删除用户-应用关联
-  async deleteUserApplication(id: number | string) {}
+  async deleteUserApplication(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_applications WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user application:', error);
+      return false;
+    }
+  }
+
+  // 删除用户的特定应用关联
+  async deleteUserApplicationByUserAndApp(userId: number | string, appId: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_applications 
+        WHERE user_id = ${userId} AND app_id = ${appId}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user application by user and app:', error);
+      return false;
+    }
+  }
+
   // 更新用户-应用关联
-  async updateUserApplication(id: number | string, userApplicationData: TypeUserApplication) {}
+  async updateUserApplication(id: number | string, userApplicationData: TypeUserApplication) {
+    try {
+      const { id: _, created_at: __, ...updateData } = userApplicationData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE user_applications 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating user application:', error);
+      return false;
+    }
+  }
+
   // 获取用户-应用关联通过用户ID
-  async getUserApplicationsByUserId(userId: number | string) {}
+  async getUserApplicationsByUserId(userId: number | string) {
+    try {
+      const userApplications = await mysql`
+        SELECT ua.*, a.app_name, a.app_code, a.icon_url
+        FROM user_applications ua
+        LEFT JOIN applications a ON ua.app_id = a.id
+        WHERE ua.user_id = ${userId} AND ua.status = 1
+      `;
+      return userApplications;
+    } catch (error) {
+      console.error('Error getting user applications by user id:', error);
+      return [];
+    }
+  }
 }
 export default { UserApplications };

@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 用户-权限关联表：记录用户的直接权限（不通过角色）
 // CREATE TABLE user_permissions (
@@ -47,12 +48,99 @@ export type TypeUserPermission = {
 
 export class UserPermissions {
   // 创建用户权限关联
-  async create(userPermissionData: TypeUserPermission) {}
+  async create(userPermissionData: TypeUserPermission) {
+    try {
+      await mysql`
+        INSERT INTO user_permissions ${sql(userPermissionData)}
+      `;
+      return userPermissionData;
+    } catch (error) {
+      console.error('Error creating user permission:', error);
+      throw error;
+    }
+  }
+
   // 删除用户权限关联
-  async deleteUserPermission(id: number | string) {}
+  async deleteUserPermission(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_permissions WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user permission:', error);
+      return false;
+    }
+  }
+
+  // 删除用户的特定权限
+  async deleteUserPermissionByUserAndPermission(userId: number | string, permissionId: number | string) {
+    try {
+      await mysql`
+        DELETE FROM user_permissions 
+        WHERE user_id = ${userId} AND permission_id = ${permissionId}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting user permission by user and permission:', error);
+      return false;
+    }
+  }
+
   // 更新用户权限关联
-  async updateUserPermission(id: number | string, userPermissionData: TypeUserPermission) {}
+  async updateUserPermission(id: number | string, userPermissionData: TypeUserPermission) {
+    try {
+      const { id: _, created_at: __, ...updateData } = userPermissionData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE user_permissions 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating user permission:', error);
+      return false;
+    }
+  }
+
   // 获取用户权限关联通过用户ID
-  async getUserPermissionsByUserId(userId: number | string) {}
+  async getUserPermissionsByUserId(userId: number | string) {
+    try {
+      const userPermissions = await mysql`
+        SELECT up.*, p.permission_name, p.permission_code, a.app_name, a.app_code
+        FROM user_permissions up
+        LEFT JOIN permissions p ON up.permission_id = p.id
+        LEFT JOIN applications a ON up.app_id = a.id
+        WHERE up.user_id = ${userId} AND up.status = 1
+        AND (up.expire_time IS NULL OR up.expire_time > NOW())
+      `;
+      return userPermissions;
+    } catch (error) {
+      console.error('Error getting user permissions by user id:', error);
+      return [];
+    }
+  }
+
+  // 获取用户在指定应用中的直接权限
+  async getUserPermissionsByUserIdAndAppId(userId: number | string, appId: number | string) {
+    try {
+      const userPermissions = await mysql`
+        SELECT up.*, p.permission_name, p.permission_code
+        FROM user_permissions up
+        LEFT JOIN permissions p ON up.permission_id = p.id
+        WHERE up.user_id = ${userId} AND up.app_id = ${appId} AND up.status = 1
+        AND (up.expire_time IS NULL OR up.expire_time > NOW())
+      `;
+      return userPermissions;
+    } catch (error) {
+      console.error('Error getting user permissions by user id and app id:', error);
+      return [];
+    }
+  }
 }
 export default { UserPermissions };

@@ -1,4 +1,5 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
+import { sql } from 'bun';
 
 // -- 权限表：存储应用中的权限定义
 // CREATE TABLE permissions (
@@ -41,15 +42,96 @@ export type TypePermission = {
 
 export class Permissions {
   // 创建权限
-  async create(permissionData: TypePermission) {}
+  async create(permissionData: TypePermission) {
+    try {
+      await mysql`
+        INSERT INTO permissions ${sql(permissionData)}
+      `;
+      return permissionData;
+    } catch (error) {
+      console.error('Error creating permission:', error);
+      throw error;
+    }
+  }
+
   // 获取权限列表
-  async getAllPermissions() {}
+  async getAllPermissions() {
+    try {
+      const permissions = await mysql`
+        SELECT p.*, a.app_name, a.app_code
+        FROM permissions p
+        LEFT JOIN applications a ON p.app_id = a.id
+      `;
+      return permissions;
+    } catch (error) {
+      console.error('Error getting all permissions:', error);
+      return [];
+    }
+  }
+
   // 获取单个权限
-  async getPermissionById(id: number | string) {}
+  async getPermissionById(id: number | string) {
+    try {
+      const [permission] = await mysql`
+        SELECT p.*, a.app_name, a.app_code
+        FROM permissions p
+        LEFT JOIN applications a ON p.app_id = a.id
+        WHERE p.id = ${id}
+      `;
+      return permission || null;
+    } catch (error) {
+      console.error('Error getting permission by id:', error);
+      return null;
+    }
+  }
+
+  // 按应用获取权限列表
+  async getPermissionsByAppId(appId: number | string) {
+    try {
+      const permissions = await mysql`
+        SELECT * FROM permissions 
+        WHERE app_id = ${appId}
+      `;
+      return permissions;
+    } catch (error) {
+      console.error('Error getting permissions by app id:', error);
+      return [];
+    }
+  }
+
   // 更新权限
-  async updatePermission(id: number | string, permissionData: TypePermission) {}
+  async updatePermission(id: number | string, permissionData: TypePermission) {
+    try {
+      const { id: _, created_at: __, ...updateData } = permissionData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE permissions 
+        SET ${sql(updateData)}
+        WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating permission:', error);
+      return false;
+    }
+  }
+
   // 删除权限
-  async deletePermission(id: number | string) {}
+  async deletePermission(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM permissions WHERE id = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting permission:', error);
+      return false;
+    }
+  }
 }
 
 export default { Permissions };

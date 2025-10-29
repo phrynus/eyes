@@ -51,7 +51,7 @@ export function err(code: number = ResponseCode.INTERNAL_ERROR, message?: string
     data,
     timestamp: Date.now(),
   };
-  throw Response.json(error, {
+  return Response.json(error, {
     status: error.code,
   });
 }

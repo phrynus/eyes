@@ -1,4 +1,4 @@
-import { mysql } from '~~/service/config/mysql';
+import { mysql } from '~/config/mysql';
 import { sql, randomUUIDv7 } from 'bun';
 
 // -- 应用表：存储所有应用信息
@@ -40,12 +40,8 @@ export class Applications {
   // 创建应用
   async create(appData: TypeApplication) {
     try {
-      // appData.app_code = randomUUIDv7();
-      // appData.app_name = appData.app_name || randomUUIDv7('base64url');
-      // appData.description = appData.description || `名称：${appData.app_name}，ID：${appData.app_code}`;
-      // appData.icon_url = appData.icon_url || `https://api.dicebear.com/6.x/initials/svg?seed=${appData.app_name}`;
       await mysql`
-      INSERT INTO applications ${sql(appData)}
+        INSERT INTO applications ${sql(appData)}
       `;
       return appData;
     } catch (error) {
@@ -57,10 +53,11 @@ export class Applications {
   async getAllApplications() {
     try {
       const applications = await mysql`
-      SELECT * FROM applications
+        SELECT * FROM applications
       `;
       return applications;
     } catch (error) {
+      console.error('Error getting all applications:', error);
       return [];
     }
   }
@@ -68,11 +65,47 @@ export class Applications {
   async getApplicationById(id: number | string) {
     try {
       const [application] = await mysql`
-      SELECT * FROM applications WHERE id = ${id} OR app_code = ${id}
+        SELECT * FROM applications WHERE id = ${id} OR app_code = ${id}
       `;
-      return application;
+      return application || null;
     } catch (error) {
+      console.error('Error getting application by id:', error);
       return null;
+    }
+  }
+
+  // 更新应用
+  async updateApplication(id: number | string, appData: TypeApplication) {
+    try {
+      // 移除不应该被更新的字段
+      const { id: _, created_at: __, ...updateData } = appData as any;
+
+      if (Object.keys(updateData).length === 0) {
+        return false;
+      }
+
+      await mysql`
+        UPDATE applications 
+        SET ${sql(updateData)}
+        WHERE id = ${id} OR app_code = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error updating application:', error);
+      return false;
+    }
+  }
+
+  // 删除应用
+  async deleteApplication(id: number | string) {
+    try {
+      await mysql`
+        DELETE FROM applications WHERE id = ${id} OR app_code = ${id}
+      `;
+      return true;
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      return false;
     }
   }
 }

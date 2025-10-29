@@ -2,14 +2,20 @@
 export const jwtConfig = {
   access: {
     name: 'access',
-    secret: process.env.JWT_ACCESS_SECRET!,
+    secret: process.env.JWT_ACCESS_SECRET || 'your-secret-key-please-change-in-production',
     exp: process.env.JWT_ACCESS_EXPIRES || '1h',
   },
   refresh: {
     name: 'refresh',
-    secret: process.env.JWT_REFRESH_SECRET!,
+    secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-please-change',
     exp: process.env.JWT_REFRESH_EXPIRES || '7d',
   },
+};
+
+// 管理员配置
+export const adminConfig = {
+  username: process.env.ADMIN_USERNAME || 'admin',
+  password: process.env.ADMIN_PASSWORD || 'Admin123',
 };
 
 export const regexPatterns = {
@@ -17,8 +23,8 @@ export const regexPatterns = {
   nicknameRegex: /^[\u4e00-\u9fa5a-zA-Z0-9_]{2,16}$/,
   // 邮箱正则：邮箱格式
   emailRegex: /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
-  // 用户正则：4-16位，只能包含字母、数字和下划线，且不能以数字开头
-  usernameRegex: /^[a-zA-Z_][a-zA-Z0-9_]{4,16}$/,
+  // 用户正则：4-16位，只能包含字母、数字和下划线
+  usernameRegex: /^[a-zA-Z0-9_]{4,16}$/,
   // 密码正则：6-24位，允许大小写字母、数字和基本特殊字符
   passwordRegex: /^[a-zA-Z0-9_!@#$%&\.]{6,24}$/,
 };
